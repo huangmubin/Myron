@@ -2,6 +2,16 @@
 <Workspace
    version = "1.0">
    <Group
+      location = "group:Explorer"
+      name = "Explorer">
+      <FileRef
+         location = "group:Explorer.swift">
+      </FileRef>
+      <FileRef
+         location = "group:Explorer.md">
+      </FileRef>
+   </Group>
+   <Group
       location = "group:AutoLayout"
       name = "AutoLayout">
       <FileRef
