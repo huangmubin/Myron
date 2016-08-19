@@ -11,4 +11,7 @@
          location = "group:README.md">
       </FileRef>
    </Group>
+   <FileRef
+      location = "group:iOS_Test_Product/iOS_Test_Product.xcodeproj">
+   </FileRef>
 </Workspace>
