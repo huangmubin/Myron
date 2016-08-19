@@ -1,9 +1,72 @@
 
+
 # AutoLayout.swift
 
 AutoLayout 封装库。
 
 # Api
+
+> Api 设计规则
+> * 属性：必须使用的视图对象以及其设置方法，以及设置之后的 layout 对象。
+> * 方法
+>     * 全自定义方法：可完全自定义 Layout 的方法。
+>     * 单边，多边... 按边数定义的 Layout 方法，函数名称即为要设置对齐的边。
+> 参数基本上都设置了默认值，并省略外部参数名。
+
+* 属性
+    * Views
+        * weak var view: UIView! /// 父视图
+        * weak var first: UIView! /// 添加约束的视图
+        * weak var second: UIView? /// 作为对比的视图
+    * 初始化，设置对象
+        * init(_ view: UIView, _ first: UIView, _ second: UIView? = nil) 
+        * func first(view: UIView) -> AutoLayout 
+        * func second(view: UIView?) -> AutoLayout 
+        * func views(first: UIView, _ second: UIView?) -> AutoLayout 
+    * Constraints
+        * var _constrants: [NSLayoutConstraint] /// 约束存放数组
+        * func clearConstrants() -> AutoLayout
+        * func constrants(block: ([NSLayoutConstraint]) -> Void) -> AutoLayout
+* 全自定义方法
+    * func add(FEdge: NSLayoutAttribute, SEdge: NSLayoutAttribute, constant: CGFloat = 0, multiplier: CGFloat = 1, priority: Float = 1000, related: NSLayoutRelation = .Equal) -> AutoLayout
+    * func layout(FEdge: NSLayoutAttribute, SEdge: NSLayoutAttribute, constant: CGFloat = 0, multiplier: CGFloat = 1, priority: Float = 1000, related: NSLayoutRelation = .Equal) -> NSLayoutConstraint
+* 宽高方法
+    * func width(view: UIView, _ constant: CGFloat, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout 
+    * func height(view: UIView, _ constant: CGFloat, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout 
+    * func aspectRatio(view: UIView, _ constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+    * func size(view: UIView, _ width: CGFloat, _ height: CGFloat, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+* 单边对比方法
+    * func top(constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+    * func bottom(constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+    * func leading(constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+    * func trailing(constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+    * func centerX(constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+    * func centerY(constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+    * func width(constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+    * func height(constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+* 距离
+    * func horizontal(constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+    * func vertical(constant: CGFloat = 0, _ multiplier: CGFloat = 1, _ related: NSLayoutRelation = .Equal, priority: Float = 1000) -> AutoLayout
+* 双边对比方法
+    * 常用
+        * func center(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+        * func size(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+        * func leadingTrailing(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+        * func topBottom(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+    * 角落
+        * func leadingTop(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+        * func topTrailing(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+        * func trailingBottom(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+        * func bottomLeading(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+* 三边对比方法
+    * func bottomLeadingTop(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+    * func leadingTopTrailing(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+    * func topTrailingBottom(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+    * func trailingBottomLeading(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+* 四边对比方法
+    * func centerSize(constant: CGFloat = 0, _ multiplier: CGFloat = 1, priority: Float = 1000) -> AutoLayout
+    * func edge(constant: CGFloat = 0, priority: Float = 1000) -> AutoLayout
+
 
 # 设计思路
 
