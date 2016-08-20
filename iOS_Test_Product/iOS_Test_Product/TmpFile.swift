@@ -8,6 +8,191 @@
 
 import UIKit
 
+// MARK: - Explorer Cache
+private class ExplorerCache {
+    
+    class Node {
+        var top: Node?
+        var bot: Node?
+        var data: AnyObject
+        
+        init(data: AnyObject) {
+            self.data = data
+            top = nil
+            bot = nil
+        }
+    }
+    
+    var queue: [String: Node] = [:]
+    var max: Int = 10
+    
+    var top: Node?
+    var bottom: Node?
+    
+    func apend(key: String, value: AnyObject) {
+        if let node = queue[key] {
+            if bottom === node {
+                node.top?.bot = nil
+                bottom = node.top
+                top?.top = node
+                node.bot = top
+                top = node
+            } else if top !== node {
+                node.top?.bot = node.bot
+                node.bot?.top = node.top
+                node.bot = top
+                top?.top = node
+                top = node
+            }
+        } else {
+            let node = Node(data: value)
+            node.bot = top
+            top?.top = node
+            top = node
+            queue[key] = node
+        }
+    }
+    
+    
+}
+
+// MARK: - Explorer Delegate
+protocol ExplorerIndex {
+    /// 文件索引对象加载程序
+    func loadIndex()
+    /// 新增索引
+    func insertIndex(name: String, folder: String, time: NSTimeInterval, infos: [String: AnyObject]?) -> Bool
+    /// 改变索引
+    func changeIndex(name: String, folder: String, time: NSTimeInterval, infos: [String: AnyObject]?) -> Bool
+    /// 移除索引
+    func removeIndex(name: String, folder: String, infos: [String: AnyObject]?) -> Bool
+}
+
+// MARK: - Explorer
+class Explorer: ExplorerIndex {
+    
+    // MAKR: Init
+    
+    static let shared = Explorer()
+    private init() {
+        index = self
+        index.loadIndex()
+    }
+    
+    // MARK: Lock
+    
+    private struct Lock {
+        var lock_semaphore: dispatch_semaphore_t = dispatch_semaphore_create(1)
+        func lock() { dispatch_semaphore_wait(lock_semaphore, DISPATCH_TIME_FOREVER) }
+        func unlock() { dispatch_semaphore_signal(lock_semaphore) }
+    }
+    
+    private var lock: Lock = Lock()
+    
+    // MARK: Property
+    
+    private var index: ExplorerIndex!
+    
+    /// 管理器
+    private var manager = NSFileManager.defaultManager()
+    /// 持久保存路径
+    private var path = "\(NSHomeDirectory())/Documents/Explorer_Folder/"
+    
+    // MARK: - ExplorerIndex
+    
+    private var suite: NSUserDefaults!
+    
+    
+    func loadIndex() {
+        if let user = NSUserDefaults(suiteName: "Explorer_File_Index") {
+            suite = user
+        } else {
+            NSUserDefaults.standardUserDefaults().addSuiteNamed("Explorer_File_Index")
+            suite = NSUserDefaults(suiteName: "Explorer_File_Index")
+        }
+    }
+    
+    func insertIndex(name: String, folder: String, time: NSTimeInterval = 0, infos: [String: AnyObject]? = nil) -> Bool {
+        suite.setObject(["name": name, "folder": folder, "time": time == 0 ? 0 : NSDate().timeIntervalSince1970 + time], forKey: folder + name)
+        return true
+    }
+    
+    func changeIndex(name: String, folder: String, time: NSTimeInterval, infos: [String: AnyObject]? = nil) -> Bool {
+        if let _ = suite.objectForKey(folder + name) as? [String: AnyObject] {
+            suite.setObject(["name": name, "folder": folder, "time": time == 0 ? 0 : NSDate().timeIntervalSince1970 + time], forKey: folder + name)
+            return true
+        }
+        return false
+    }
+    
+    func removeIndex(name: String, folder: String, infos: [String: AnyObject]? = nil) -> Bool {
+        suite.removeObjectForKey(folder + name)
+        return true
+    }
+    
+    
+    // MARK: - 文件操作
+    
+    /// 保存数据
+    func save(data: NSData?, name: String, time: NSTimeInterval = 0, folder: String = "", replace: Bool = false, infos: [String: AnyObject]? = nil) -> Bool {
+        lock.lock()
+        
+        // 数据检查
+        guard let data = data else { lock.unlock(); return false }
+        
+        // 路径检查
+        let path = self.path + folder + name
+        guard Explorer.isFilenameValid(path) else { lock.unlock(); return false }
+        guard Explorer.createDirectory(self.path + folder) else { lock.unlock(); return false }
+        
+        // 文件写入
+        var result = false
+        if replace {
+            result = data.writeToFile(path, atomically: true)
+        } else {
+            if manager.fileExistsAtPath(path) {
+                result = index.changeIndex(name, folder: folder, time: time, infos: infos)
+            } else {
+                if data.writeToFile(path, atomically: true) {
+                    if index.insertIndex(name, folder: folder, time: time, infos: infos) {
+                        result = true
+                    } else {
+                        do {
+                            try manager.removeItemAtPath(path)
+                        } catch {}
+                    }
+                }
+            }
+        }
+        lock.unlock()
+        return result
+    }
+    
+    
+    
+    // MARK: - Tools
+    
+    /// 检查文件夹是否存在，不存在则创建
+    class func createDirectory(path: String) -> Bool {
+        if NSFileManager.defaultManager().fileExistsAtPath(path) {
+            return true
+        } else {
+            do {
+                try NSFileManager.defaultManager().createDirectoryAtPath(path, withIntermediateDirectories: true, attributes: nil)
+                return true
+            } catch {
+                return false
+            }
+        }
+    }
+    
+    /// 检查文件名是否合法
+    class func isFilenameValid(path: String) -> Bool {
+        return true
+    }
+}
+
+/*
 // MARK: - Explorer
 class Explorer {
     
@@ -316,3 +501,4 @@ class Explorer {
     }
     
 }
+*/
