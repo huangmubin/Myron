@@ -9,55 +9,126 @@
 import UIKit
 
 // MARK: - Explorer Cache
-private class ExplorerCache {
+
+class ExplorerCache {
     
-    class Node {
-        var top: Node?
-        var bot: Node?
-        var data: AnyObject
-        
-        init(data: AnyObject) {
-            self.data = data
-            top = nil
-            bot = nil
+    // MARK: Cache
+    
+    class Cache {
+        var prev: Cache?
+        var next: Cache?
+        var value: AnyObject
+        var size: Int = 0
+        init(value: AnyObject, size: Int = 0) {
+            self.value = value
+            self.size = size
+            prev = nil
+            next = nil
         }
     }
     
-    var queue: [String: Node] = [:]
-    var max: Int = 10
+    // MARK: Propertys
     
-    var top: Node?
-    var bottom: Node?
+    /// LRU 队列
+    var queue = [String: Cache]()
+    /// 最大数量
+    var maxCount = 10
+    /// 最大内存
+    var maxSize = 100000
     
-    func apend(key: String, value: AnyObject) {
-        if let node = queue[key] {
-            if bottom === node {
-                node.top?.bot = nil
-                bottom = node.top
-                top?.top = node
-                node.bot = top
-                top = node
-            } else if top !== node {
-                node.top?.bot = node.bot
-                node.bot?.top = node.top
-                node.bot = top
-                top?.top = node
-                top = node
+    var first: Cache?
+    var last: Cache?
+    
+    // MARK: Methods
+    
+    /// 遍历所有
+    func traverse() {
+        var cache = first
+        while cache != nil {
+            print(cache?.value)
+            cache = cache?.next
+        }
+    }
+    
+    /// 添加缓存
+    func append(key: String, value: AnyObject, size: Int = 0) {
+        if let cache = queue[key] {
+            cache.value = value
+            cache.size = size
+            if cache !== first {
+                if cache === last {
+                    last = last?.prev
+                }
+                cache.prev?.next = cache.next
+                cache.next?.prev = cache.prev
+                
+                cache.next = first
+                first?.prev = cache
+                first = cache
+                
+                first?.prev = nil
+                last?.next = nil
             }
         } else {
-            let node = Node(data: value)
-            node.bot = top
-            top?.top = node
-            top = node
-            queue[key] = node
+            let cache = Cache(value: value, size: size)
+            queue[key] = cache
+            
+            cache.next = first
+            first?.prev = cache
+            first = cache
+            
+            if last == nil {
+                last = cache
+            }
         }
     }
     
+    /// 删除缓存
+    func remove(key: String) {
+        if let cache = queue[key] {
+            cache.prev?.next = cache.next
+            cache.next?.prev = cache.prev
+            
+            if cache === first {
+                first = first?.next
+                first?.prev = nil
+            }
+            if cache === last {
+                last = last?.prev
+                last?.next = nil
+            }
+            
+            queue.removeValueForKey(key)
+        }
+    }
     
+    /// 读取缓存
+    func read(key: String) -> AnyObject? {
+        if let cache = queue[key] {
+            if cache !== first {
+                if cache === last {
+                    last = last?.prev
+                }
+                cache.prev?.next = cache.next
+                cache.next?.prev = cache.prev
+                
+                cache.next = first
+                first?.prev = cache
+                first = cache
+                
+                first?.prev = nil
+                last?.next = nil
+            }
+            return cache.value
+        }
+        return nil
+    }
 }
 
 // MARK: - Explorer Delegate
+
 protocol ExplorerIndex {
+    
     /// 文件索引对象加载程序
     func loadIndex()
     /// 新增索引
@@ -66,9 +137,11 @@ protocol ExplorerIndex {
     func changeIndex(name: String, folder: String, time: NSTimeInterval, infos: [String: AnyObject]?) -> Bool
     /// 移除索引
     func removeIndex(name: String, folder: String, infos: [String: AnyObject]?) -> Bool
+    
 }
 
 // MARK: - Explorer
+
 class Explorer: ExplorerIndex {
     
     // MAKR: Init
@@ -91,7 +164,10 @@ class Explorer: ExplorerIndex {
     
     // MARK: Property
     
+    /// 文件保存
     private var index: ExplorerIndex!
+    /// Cache 缓存
+    private var cache: ExplorerCache = ExplorerCache()
     
     /// 管理器
     private var manager = NSFileManager.defaultManager()
@@ -134,7 +210,7 @@ class Explorer: ExplorerIndex {
     // MARK: - 文件操作
     
     /// 保存数据
-    func save(data: NSData?, name: String, time: NSTimeInterval = 0, folder: String = "", replace: Bool = false, infos: [String: AnyObject]? = nil) -> Bool {
+    func save(data: NSData?, name: String, time: NSTimeInterval = 0, folder: String = "", replace: Bool = false, infos: [String: AnyObject]? = nil, cache: Bool = true) -> Bool {
         lock.lock()
         
         // 数据检查
@@ -163,6 +239,9 @@ class Explorer: ExplorerIndex {
                     }
                 }
             }
+        }
+        if result && cache {
+            self.cache.append(<#T##key: String##String#>, value: <#T##AnyObject#>, size: <#T##Int#>)
         }
         lock.unlock()
         return result
