@@ -6,10 +6,13 @@
 //
 //
 
-import UIKit
+import Foundation
 
 // MARK: - Explorer Cache
 
+/**
+ The Cache Manager, default the max cache numbers is 50 and the max cache size is 50MB. You by the maxCount and maxSize set it.
+ */
 class ExplorerCache {
     
     // MARK: Cache
@@ -17,9 +20,11 @@ class ExplorerCache {
     class Cache {
         var prev: Cache?
         var next: Cache?
+        var key: String
         var value: AnyObject
         var size: Int = 0
-        init(value: AnyObject, size: Int = 0) {
+        init(key: String, value: AnyObject, size: Int = 0) {
+            self.key = key
             self.value = value
             self.size = size
             prev = nil
@@ -29,19 +34,20 @@ class ExplorerCache {
     
     // MARK: Propertys
     
-    /// LRU 队列
+    /// LRU Queue
     var queue = [String: Cache]()
-    /// 最大数量
-    var maxCount = 10
-    /// 最大内存
-    var maxSize = 100000
+    /// The queue's max count.
+    var maxCount = 50
+    /// The queue's max size, the unit is byte, divide 1000000 is MB.
+    var maxSize = 50000000
     
     var first: Cache?
     var last: Cache?
+    var size: Int = 0
     
     // MARK: Methods
     
-    /// 遍历所有
+    /// Traverse all cache and print it in order.
     func traverse() {
         var cache = first
         while cache != nil {
@@ -50,7 +56,7 @@ class ExplorerCache {
         }
     }
     
-    /// 添加缓存
+    /// Append cache to cache queue first, if cache already has, then move it to first. And wipe overflow.
     func append(key: String, value: AnyObject, size: Int = 0) {
         if let cache = queue[key] {
             cache.value = value
@@ -70,7 +76,7 @@ class ExplorerCache {
                 last?.next = nil
             }
         } else {
-            let cache = Cache(value: value, size: size)
+            let cache = Cache(key: key, value: value, size: size)
             queue[key] = cache
             
             cache.next = first
@@ -80,10 +86,13 @@ class ExplorerCache {
             if last == nil {
                 last = cache
             }
+            
+            self.size += size
         }
+        wipeOverflow()
     }
     
-    /// 删除缓存
+    /// Remove the cache in queue.
     func remove(key: String) {
         if let cache = queue[key] {
             cache.prev?.next = cache.next
@@ -98,11 +107,12 @@ class ExplorerCache {
                 last?.next = nil
             }
             
+            self.size -= cache.size
             queue.removeValueForKey(key)
         }
     }
     
-    /// 读取缓存
+    /// Read the cache value and move it to first.
     func read(key: String) -> AnyObject? {
         if let cache = queue[key] {
             if cache !== first {
@@ -122,6 +132,29 @@ class ExplorerCache {
             return cache.value
         }
         return nil
+    }
+    
+    /// If the total size is bigger then maxSize, or the cache numbers is bigger them maxCount, wipe the last cache.
+    func wipeOverflow() {
+        while self.size > maxSize || queue.count > maxCount {
+            queue.removeValueForKey(last!.key)
+            
+            last = last?.prev
+            last?.next = nil
+            
+            self.size -= last!.size
+        }
+    }
+    
+    /// Clear all cache.
+    func clearCache() {
+        for cache in queue.values {
+            cache.prev = nil
+            cache.next = nil
+        }
+        queue.removeAll(keepCapacity: true)
+        first = nil
+        last = nil
     }
 }
 
