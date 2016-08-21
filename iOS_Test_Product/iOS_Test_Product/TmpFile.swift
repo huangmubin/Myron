@@ -6,7 +6,7 @@
 //
 //
 
-import Foundation
+import UIKit
 
 // MARK: - Explorer Cache
 
@@ -29,6 +29,9 @@ class ExplorerCache {
             self.size = size
             prev = nil
             next = nil
+        }
+        deinit {
+            print("key = \(key) deinit.")
         }
     }
     
@@ -153,6 +156,7 @@ class ExplorerCache {
             cache.next = nil
         }
         queue.removeAll(keepCapacity: true)
+        size = 0
         first = nil
         last = nil
     }
@@ -272,9 +276,16 @@ class Explorer: NSObject {
     static let shared = Explorer()
     private override init() {
         super.init()
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(clearCache), name: UIApplicationDidReceiveMemoryWarningNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(clearTemporary), name: UIApplicationDidReceiveMemoryWarningNotification, object: nil)
+        NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(clearTemporary), name: UIApplicationDidEnterBackgroundNotification, object: nil)
+        
         index = ExplorerUserDefault.shared
         index.loadIndex()
-        clearTmp()
+        clearTemporary()
+    }
+    class func loaded() {
+        shared.clearCache()
     }
     
     // MARK: Lock
@@ -293,7 +304,7 @@ class Explorer: NSObject {
     /// File list index manager. Default self.
     private weak var index: ExplorerIndex!
     /// Cache manager.
-    private var cache: ExplorerCache = ExplorerCache()
+    var cache: ExplorerCache = ExplorerCache()
     /// Will you need to open the explorer cache? Default true.
     var openCache: Bool = true {
         didSet {
@@ -359,6 +370,9 @@ class Explorer: NSObject {
                 value = object
             } else {
                 value = NSData(contentsOfFile: path + folder + name)
+                if value != nil {
+                    cache.append(folder + name, value: value!, size: value!.length)
+                }
             }
         } else {
             value = NSData(contentsOfFile: path + folder + name)
@@ -415,6 +429,105 @@ class Explorer: NSObject {
         return result
     }
     
+    // MARK: Specific Data Tool
+    
+    /// Read the file if it is a Image Data
+    func readImage(folder: String = "", name: String) -> UIImage? {
+        lock.lock()
+        var image: UIImage? = nil
+        if openCache {
+            if let data = cache.read(folder + name) as? NSData {
+                image = UIImage(data: data)
+            } else {
+                if let data = NSData(contentsOfFile: path + folder + name) {
+                    image = UIImage(data: data)
+                    if image != nil {
+                        cache.append(folder + name, value: data, size: data.length)
+                    }
+                }
+            }
+        } else {
+            if let data = NSData(contentsOfFile: path + folder + name) {
+                image = UIImage(data: data)
+            }
+        }
+        lock.unlock()
+        return image
+    }
+    
+    /// Save UIImage.
+    func saveImage(image: UIImage?, name: String, time: NSTimeInterval = 0, folder: String = "", replace: Bool = false, infos: [String: AnyObject]? = nil, cache: Bool = true) -> Bool {
+        lock.lock()
+        
+        // 数据检查
+        var value: NSData?
+        if let image = image {
+            if let png = UIImagePNGRepresentation(image) {
+                value = png
+            }
+        }
+        guard let data = value else { lock.unlock(); return false }
+        
+        // 路径检查
+        let path = self.path + folder + name
+        guard Explorer.isFilenameValid(path) else { lock.unlock(); return false }
+        guard Explorer.createDirectory(self.path + folder) else { lock.unlock(); return false }
+        
+        // 文件写入
+        var result = false
+        if replace {
+            if index.insertIndex(name, folder: folder, time: time, infos: infos) {
+                result = data.writeToFile(path, atomically: true)
+            }
+        } else {
+            if manager.fileExistsAtPath(path) {
+                result = index.changeIndex(name, folder: folder, time: time, infos: infos)
+            } else {
+                if index.insertIndex(name, folder: folder, time: time, infos: infos) {
+                    if data.writeToFile(path, atomically: true) {
+                        result = true
+                    } else {
+                        index.removeIndex(name, folder: folder, infos: infos)
+                    }
+                }
+            }
+        }
+        
+        if openCache && cache && result {
+            self.cache.append(folder + name, value: data, size: data.length)
+        }
+        
+        lock.unlock()
+        return result
+    }
+    
+    // MARK: Path and Url
+    
+    /// Get file path.
+    func path(folder: String = "", name: String) -> String? {
+        lock.lock()
+        var path: String? = self.path + folder + name
+        if !manager.fileExistsAtPath(path!) {
+            path = nil
+        }
+        lock.unlock()
+        return path
+    }
+    
+    /// Get file url.
+    func url(folder: String = "", name: String) -> NSURL? {
+        lock.lock()
+        var url: NSURL?
+        let path = self.path + folder + name
+        if manager.fileExistsAtPath(path) {
+            url = NSURL(fileURLWithPath: path)
+        }
+        lock.unlock()
+        return url
+    }
+    
+    // MARK: Delay
+    
     /// Delay tmp file time.
     func delay(folder: String = "", name: String, time: NSTimeInterval) -> Bool {
         lock.lock()
@@ -426,8 +539,10 @@ class Explorer: NSObject {
         return result
     }
     
+    // MARK: Clear
+    
     /// Clear the time out file.
-    func clearTmp() {
+    func clearTemporary() {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             self.lock.lock()
             let time = NSDate().timeIntervalSince1970
@@ -442,6 +557,7 @@ class Explorer: NSObject {
         }
     }
     
+    /// Clear all the file.
     func clearAll() {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             self.lock.lock()
@@ -454,9 +570,14 @@ class Explorer: NSObject {
         }
     }
     
+    /// Clear cache.
+    func clearCache() {
+        cache.clearCache()
+    }
+    
     // MARK: - Tools
     
-    /// 检查文件夹是否存在，不存在则创建
+    /// Check the folder has. If no, create it.
     class func createDirectory(path: String) -> Bool {
         if NSFileManager.defaultManager().fileExistsAtPath(path) {
             return true
@@ -470,10 +591,50 @@ class Explorer: NSObject {
         }
     }
     
-    /// 检查文件名是否合法
+    /// Is the path valid?
     class func isFilenameValid(path: String) -> Bool {
         return true
     }
+    
+    
+    /// Count the file size, use MB unit.
+    class func sizeForFile(path: String) -> Double {
+        var fileSize = 0
+        if let attributes = try? NSFileManager.defaultManager().attributesOfItemAtPath(path) {
+            if attributes[NSFileType] as? String != NSFileTypeDirectory {
+                if let size = attributes[NSFileSize] as? Int {
+                    fileSize = size
+                }
+            }
+        }
+        return Double(fileSize) / 1000000
+    }
+    
+    /// Count the folder size, use MB unit.
+    class func sizeForFolder(path: String, traverseSub: Bool = true) -> Double {
+        var allsize: Int = 0
+        var files: [String] = []
+        if traverseSub {
+            if let file = NSFileManager.defaultManager().subpathsAtPath(path) {
+                files = file
+            }
+        } else {
+            if let file = try? NSFileManager.defaultManager().contentsOfDirectoryAtPath(path) {
+                files = file
+            }
+        }
+        for file in files {
+            if let attributes = try? NSFileManager.defaultManager().attributesOfItemAtPath(path + file) {
+                if attributes[NSFileType] as? String != NSFileTypeDirectory {
+                    if let size = attributes[NSFileSize] as? Int {
+                        allsize += size
+                    }
+                }
+            }
+        }
+        return Double(allsize) / 1000000
+    }
+
 }
 
 /*
