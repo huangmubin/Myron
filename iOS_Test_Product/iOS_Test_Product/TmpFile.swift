@@ -158,59 +158,42 @@ class ExplorerCache {
     }
 }
 
-// MARK: - Explorer Delegate
+// MARK: - Explorer Index
 
-protocol ExplorerIndex {
-    
-    /// 文件索引对象加载程序
+// MARK: Protocol
+/**
+ The file index protocol.
+ */
+protocol ExplorerIndex: NSObjectProtocol {
+
+    /// load
     func loadIndex()
-    /// 新增索引
+    /// append
     func insertIndex(name: String, folder: String, time: NSTimeInterval, infos: [String: AnyObject]?) -> Bool
-    /// 改变索引
+    /// change infos
     func changeIndex(name: String, folder: String, time: NSTimeInterval, infos: [String: AnyObject]?) -> Bool
-    /// 移除索引
+    /// remove infos
     func removeIndex(name: String, folder: String, infos: [String: AnyObject]?) -> Bool
+    /// move infos
+    func moveIndex(folder: String, name: String, toFolder: String, toName: String, time: NSTimeInterval, infos: [String: AnyObject]?) -> Bool
+    /// delay time
+    func delayIndex(folder: String, name: String, time: NSTimeInterval) -> Bool
+    /// read infos
+    func readIndexes() -> [(name: String, folder: String, time: NSTimeInterval, infos: [String: AnyObject]?)]
     
 }
 
-// MARK: - Explorer
+// MARK: ExplorerUserDefault
 
-class Explorer: ExplorerIndex {
+class ExplorerUserDefault: NSObject, ExplorerIndex {
     
-    // MAKR: Init
-    
-    static let shared = Explorer()
-    private init() {
-        index = self
-        index.loadIndex()
+    static let shared: ExplorerUserDefault = ExplorerUserDefault()
+    private override init() {
+        super.init()
     }
     
-    // MARK: Lock
-    
-    private struct Lock {
-        var lock_semaphore: dispatch_semaphore_t = dispatch_semaphore_create(1)
-        func lock() { dispatch_semaphore_wait(lock_semaphore, DISPATCH_TIME_FOREVER) }
-        func unlock() { dispatch_semaphore_signal(lock_semaphore) }
-    }
-    
-    private var lock: Lock = Lock()
-    
-    // MARK: Property
-    
-    /// 文件保存
-    private var index: ExplorerIndex!
-    /// Cache 缓存
-    private var cache: ExplorerCache = ExplorerCache()
-    
-    /// 管理器
-    private var manager = NSFileManager.defaultManager()
-    /// 持久保存路径
-    private var path = "\(NSHomeDirectory())/Documents/Explorer_Folder/"
-    
-    // MARK: - ExplorerIndex
-    
+    /// Explorer_File_Index.plist
     private var suite: NSUserDefaults!
-    
     
     func loadIndex() {
         if let user = NSUserDefaults(suiteName: "Explorer_File_Index") {
@@ -239,10 +222,95 @@ class Explorer: ExplorerIndex {
         return true
     }
     
+    func moveIndex(folder: String, name: String, toFolder: String, toName: String, time: NSTimeInterval = 0, infos: [String: AnyObject]?) -> Bool {
+        suite.removeObjectForKey(folder + name)
+        suite.setObject(["name": toName, "folder": toFolder, "time": time == 0 ? 0 : NSDate().timeIntervalSince1970 + time], forKey: toFolder + toName)
+        return true
+    }
     
-    // MARK: - 文件操作
+    func delayIndex(folder: String, name: String, time: NSTimeInterval) -> Bool {
+        if suite.objectForKey(folder + name) != nil {
+            suite.setObject(["name": name, "folder": folder, "time": time == 0 ? 0 : NSDate().timeIntervalSince1970 + time], forKey: folder + name)
+            return true
+        }
+        return false
+    }
     
-    /// 保存数据
+    func readIndexes() -> [(name: String, folder: String, time: NSTimeInterval, infos: [String : AnyObject]?)] {
+        var results = [(name: String, folder: String, time: NSTimeInterval, infos: [String : AnyObject]?)]()
+        var invalidateKey = [String]()
+        if let file = NSDictionary(contentsOfFile: "\(NSHomeDirectory())/Library/Preferences/Explorer_File_Index.plist") {
+            for (k, o) in file {
+                let key = k as! String
+                let value = o as! [String: AnyObject]
+                if let name = value["name"] as? String, let folder = value["folder"] as? String, let time = value["time"] as? NSTimeInterval {
+                    results.append((name, folder, time, nil))
+                } else {
+                    invalidateKey.append(key)
+                }
+            }
+        }
+        for key in invalidateKey {
+            suite.removeObjectForKey(key)
+        }
+        return results
+    }
+    
+}
+
+// MARK: - Explorer
+
+/**
+ The File Manager. Can be easy to save/read/move/delete file and automatic manager the cache. 
+ Default file is save to NSHomeDirectory()/Documents/Explorer_Folder/..., you can change it use the path property.
+ Default index object is it ExplorerUserDefault.shared, user the .plist file to save the file list. You can create the object use the ExplorerIndex protocol and it's index property. Then use the SQlite or CoreData or other to manager the file list.
+ */
+class Explorer: NSObject {
+    
+    // MAKR: Init
+    
+    static let shared = Explorer()
+    private override init() {
+        super.init()
+        index = ExplorerUserDefault.shared
+        index.loadIndex()
+        clearTmp()
+    }
+    
+    // MARK: Lock
+    
+    /// The Lock package.
+    private struct Lock {
+        var lock_semaphore: dispatch_semaphore_t = dispatch_semaphore_create(1)
+        func lock() { dispatch_semaphore_wait(lock_semaphore, DISPATCH_TIME_FOREVER) }
+        func unlock() { dispatch_semaphore_signal(lock_semaphore) }
+    }
+    
+    private var lock: Lock = Lock()
+    
+    // MARK: Property
+    
+    /// File list index manager. Default self.
+    private weak var index: ExplorerIndex!
+    /// Cache manager.
+    private var cache: ExplorerCache = ExplorerCache()
+    /// Will you need to open the explorer cache? Default true.
+    var openCache: Bool = true {
+        didSet {
+            if !openCache {
+                cache.clearCache()
+            }
+        }
+    }
+    
+    /// NSFileManager.defaultManager()
+    private var manager = NSFileManager.defaultManager()
+    /// File save path. Default is NSHomeDirectory()/Documents/Explorer_Folder/...
+    private var path = "\(NSHomeDirectory())/Documents/Explorer_Folder/"
+    
+    // MARK: - File Manager methods.
+    
+    /// Save file.
     func save(data: NSData?, name: String, time: NSTimeInterval = 0, folder: String = "", replace: Bool = false, infos: [String: AnyObject]? = nil, cache: Bool = true) -> Bool {
         lock.lock()
         
@@ -257,30 +325,134 @@ class Explorer: ExplorerIndex {
         // 文件写入
         var result = false
         if replace {
-            result = data.writeToFile(path, atomically: true)
+            if index.insertIndex(name, folder: folder, time: time, infos: infos) {
+                result = data.writeToFile(path, atomically: true)
+            }
         } else {
             if manager.fileExistsAtPath(path) {
                 result = index.changeIndex(name, folder: folder, time: time, infos: infos)
             } else {
-                if data.writeToFile(path, atomically: true) {
-                    if index.insertIndex(name, folder: folder, time: time, infos: infos) {
+                if index.insertIndex(name, folder: folder, time: time, infos: infos) {
+                    if data.writeToFile(path, atomically: true) {
                         result = true
                     } else {
-                        do {
-                            try manager.removeItemAtPath(path)
-                        } catch {}
+                        index.removeIndex(name, folder: folder, infos: infos)
                     }
                 }
             }
         }
-        if result && cache {
-            self.cache.append(<#T##key: String##String#>, value: <#T##AnyObject#>, size: <#T##Int#>)
+        
+        if openCache && cache && result {
+            self.cache.append(folder + name, value: data, size: data.length)
+        }
+        
+        lock.unlock()
+        return result
+    }
+    
+    /// Read file.
+    func read(folder: String = "", name: String) -> NSData? {
+        lock.lock()
+        var value: NSData? = nil
+        if openCache {
+            if let object = cache.read(folder + name) as? NSData {
+                value = object
+            } else {
+                value = NSData(contentsOfFile: path + folder + name)
+            }
+        } else {
+            value = NSData(contentsOfFile: path + folder + name)
+        }
+        lock.unlock()
+        return value
+    }
+    
+    /// Remove file.
+    func remove(folder: String = "", name: String, infos: [String: AnyObject]? = nil) {
+        lock.lock()
+        if index.removeIndex(name, folder: folder, infos: infos) {
+            if openCache {
+                cache.remove(folder + name)
+            }
+            let _ = try? manager.removeItemAtPath(path + folder + name)
+        }
+        lock.unlock()
+    }
+    
+    /// Move file
+    func move(folder: String, name: String, toFolder: String, toName: String, time: NSTimeInterval, infos: [String: AnyObject]? = nil) -> Bool {
+        lock.lock()
+        var result = false
+        if Explorer.createDirectory(self.path + toFolder + toName) {
+            if index.moveIndex(folder, name: name, toFolder: toFolder, toName: toName, time: time, infos: infos) {
+                do {
+                    try manager.moveItemAtPath(folder + name, toPath: toFolder + toName)
+                    result = true
+                } catch {
+                    index.moveIndex(toFolder, name: toName, toFolder: folder, toName: name, time: time, infos: infos)
+                }
+            }
         }
         lock.unlock()
         return result
     }
     
+    /// Copy file
+    func copy(folder: String, name: String, toFolder: String, toName: String, time: NSTimeInterval, infos: [String: AnyObject]? = nil) -> Bool {
+        lock.lock()
+        var result = false
+        if Explorer.createDirectory(self.path + toFolder + toName) {
+            if index.insertIndex(toName, folder: toFolder, time: time, infos: infos) {
+                do {
+                    try manager.copyItemAtPath(folder + name, toPath: toFolder + toName)
+                    result = true
+                } catch {
+                    index.removeIndex(toName, folder: toFolder, infos: infos)
+                }
+            }
+        }
+        lock.unlock()
+        return result
+    }
     
+    /// Delay tmp file time.
+    func delay(folder: String = "", name: String, time: NSTimeInterval) -> Bool {
+        lock.lock()
+        var result = false
+        if index.delayIndex(folder, name: name, time: time) {
+            result = true
+        }
+        lock.unlock()
+        return result
+    }
+    
+    /// Clear the time out file.
+    func clearTmp() {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+            self.lock.lock()
+            let time = NSDate().timeIntervalSince1970
+            for value in self.index.readIndexes() {
+                if value.time > 0 && value.time < time {
+                    if self.index.removeIndex(value.name, folder: value.folder, infos: value.infos) {
+                        let _ = try? NSFileManager.defaultManager().removeItemAtPath(self.path + value.folder + value.name)
+                    }
+                }
+            }
+            self.lock.unlock()
+        }
+    }
+    
+    func clearAll() {
+        dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+            self.lock.lock()
+            for value in self.index.readIndexes() {
+                self.index.removeIndex(value.name, folder: value.folder, infos: value.infos)
+            }
+            let _ = try? NSFileManager.defaultManager().removeItemAtPath(self.path)
+            Explorer.createDirectory(self.path)
+            self.lock.unlock()
+        }
+    }
     
     // MARK: - Tools
     
