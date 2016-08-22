@@ -184,6 +184,8 @@ protocol ExplorerIndex: NSObjectProtocol {
     func delayIndex(folder: String, name: String, time: NSTimeInterval) -> Bool
     /// read infos
     func readIndexes() -> [(name: String, folder: String, time: NSTimeInterval, infos: [String: AnyObject]?)]
+    /// read Timeout Infos
+    func readTimeoutIndex() -> [(name: String, folder: String, time: NSTimeInterval, infos: [String: AnyObject]?)]
     
 }
 
@@ -249,6 +251,30 @@ class ExplorerUserDefault: NSObject, ExplorerIndex {
                 let value = o as! [String: AnyObject]
                 if let name = value["name"] as? String, let folder = value["folder"] as? String, let time = value["time"] as? NSTimeInterval {
                     results.append((name, folder, time, nil))
+                } else {
+                    invalidateKey.append(key)
+                }
+            }
+        }
+        for key in invalidateKey {
+            suite.removeObjectForKey(key)
+        }
+        return results
+    }
+    
+    func readTimeoutIndex() -> [(name: String, folder: String, time: NSTimeInterval, infos: [String: AnyObject]?)] {
+        var results = [(name: String, folder: String, time: NSTimeInterval, infos: [String : AnyObject]?)]()
+        var invalidateKey = [String]()
+        if let file = NSDictionary(contentsOfFile: "\(NSHomeDirectory())/Library/Preferences/Explorer_File_Index.plist") {
+            let now = NSDate().timeIntervalSince1970
+            for (k, o) in file {
+                let key = k as! String
+                let value = o as! [String: AnyObject]
+                if let name = value["name"] as? String, let folder = value["folder"] as? String, let time = value["time"] as? NSTimeInterval {
+                    if time > 0 && time <= now {
+                        results.append((name, folder, time, nil))
+                        invalidateKey.append(key)
+                    }
                 } else {
                     invalidateKey.append(key)
                 }
@@ -545,13 +571,16 @@ class Explorer: NSObject {
     func clearTemporary() {
         dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
             self.lock.lock()
-            let time = NSDate().timeIntervalSince1970
-            for value in self.index.readIndexes() {
-                if value.time > 0 && value.time < time {
-                    if self.index.removeIndex(value.name, folder: value.folder, infos: value.infos) {
-                        let _ = try? NSFileManager.defaultManager().removeItemAtPath(self.path + value.folder + value.name)
-                    }
-                }
+            //let time = NSDate().timeIntervalSince1970
+            for value in self.index.readTimeoutIndex() {
+                let _ = try? NSFileManager.defaultManager().removeItemAtPath(self.path + value.folder + value.name)
+                /*
+                 if value.time > 0 && value.time < time {
+                 if self.index.removeIndex(value.name, folder: value.folder, infos: value.infos) {
+                 let _ = try? NSFileManager.defaultManager().removeItemAtPath(self.path + value.folder + value.name)
+                 }
+                 }
+                 */
             }
             self.lock.unlock()
         }
@@ -591,8 +620,17 @@ class Explorer: NSObject {
         }
     }
     
-    /// Is the path valid?
+    /// Is the path valid? Not have /:*?"<>|
     class func isFilenameValid(path: String) -> Bool {
+        // \/:*?"<>|
+        for c in path.characters {
+            switch c {
+            case "/", ":", "*", "?", "\"", "<", ">", "|":
+                return false
+            default:
+                break
+            }
+        }
         return true
     }
     
