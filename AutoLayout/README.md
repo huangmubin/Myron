@@ -2,10 +2,12 @@
 # AutoLayout.swift
 
 AutoLayout 封装库。
-
+使用函数式编程简化纯代码 AutoLayout 的编写过程，并保持代码的简洁。
+纯 Swift 编写，轻量，易用。
 
 ![代码调用示例图](https://github.com/huangmubin/Myron/raw/master/AutoLayout/AutoLayout.png)
 ```
+// 上述示例图的代码实现
 func useAutoLayout() {
     let SView: UIView = UIView()
     let AView: UIView = UIView()
