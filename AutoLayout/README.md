@@ -1,8 +1,52 @@
 
-
 # AutoLayout.swift
 
 AutoLayout 封装库。
+使用函数式编程简化纯代码 AutoLayout 的编写过程，并保持代码的简洁。
+纯 Swift 编写，轻量，易用。
+
+![代码调用示例图](https://github.com/huangmubin/Myron/raw/master/AutoLayout/AutoLayout.png)
+```
+// 上述示例图的代码实现
+func useAutoLayout() {
+    let SView: UIView = UIView()
+    let AView: UIView = UIView()
+    let BView: UIView = UIView()
+    SView.addSubview(AView)
+    SView.addSubview(BView)
+    
+    // 1
+    AutoLayout(SView, AView).centerSize()
+    
+    // 2 
+    AutoLayout(SView, AView).centerSize(0, 0.5)
+    
+    // 3
+    AutoLayout(SView, AView).leadingTopTrailing().width(0, 0.5)
+    
+    // 4 
+    AutoLayout(SView, BView).leadingTopTrailing()
+    AutoLayout(SView, AView).topTrailingBottom()
+        .second(BView).width().horizontal(10)
+    
+    // 5
+    AutoLayout(SView, AView).size(AView, 50, 50).centerX().centerY(0, 0.5)
+    AutoLayout(SView, BView).size(BView, 50, 50).centerX().centerY(0, 1.5)
+    
+    // 6
+    AutoLayout(SView, AView)
+        .width(AView, 50)
+        .aspectRatio(AView)
+        .add(.CenterX, SEdge: .CenterX, constant: 0, multiplier: 1)
+        .add(.CenterY, SEdge: .CenterY, constant: 0, multiplier: 0.5)
+    AutoLayout(SView, BView)
+        .width(BView, 50)
+        .aspectRatio(BView)
+        .add(.CenterX, SEdge: .CenterX, constant: 0, multiplier: 1)
+        .add(.CenterY, SEdge: .CenterY, constant: 0, multiplier: 1.5)
+}
+```
+
 
 # Api
 

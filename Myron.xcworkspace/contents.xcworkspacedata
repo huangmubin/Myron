@@ -24,4 +24,7 @@
    <FileRef
       location = "group:iOS_Test_Product/iOS_Test_Product.xcodeproj">
    </FileRef>
+   <FileRef
+      location = "group:OS_Test_Product/OS_Test_Product.xcodeproj">
+   </FileRef>
 </Workspace>

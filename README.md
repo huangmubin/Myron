@@ -17,7 +17,10 @@ Myron knowledge library.
 
 * iOS_Test_Product 用于测试的项目
 * AutoLayout 自动布局封装
+* Explorer 文件管理系统
 
 # 大事记
 
 * 2016-08-19 星期五：创建本仓库，用于整理，升级原 MyronWorkSpace 仓库内容。这是一次将自己的知识整理串联起来的尝试。
+* 2016-08-20 星期六：创建 AutoLayout，用于优雅简便的使用纯代码编写自动约束。
+* 2016-08-21 星期天：创建 Explorer，用于自动文件管理，临时文件管理，缓存管理。
