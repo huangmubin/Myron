@@ -202,6 +202,7 @@ class Carousel: UIView {
     // MARK: - Gesture
     
     private var offset: CGFloat = 0
+    private var begin: CGFloat = 0
     @objc private func panGestureAction(sender: UIPanGestureRecognizer) {
         if direction {
             offset = sender.translationInView(self).x
@@ -210,43 +211,57 @@ class Carousel: UIView {
         }
         
         switch sender.state {
-        case .Began, .Changed:
+        case .Began:
+            begin = moveLayout.constant
+            fallthrough
+        case .Changed:
+            offset += begin
             if (index == 0 && offset >= 0) || (index == models.count-1 && offset <= 0) {
                 offset *= 0.3
             }
             self.moveLayout.constant = offset
             self.layoutIfNeeded()
         default:
+            offset += begin
             var size: CGFloat
             if direction {
-                size = bounds.width / 2 + widthLayout.constant
+                size = (bounds.width + widthLayout.constant) / 2
             } else {
-                size = bounds.height / 2 + heightLayout.constant
+                size = (bounds.width + heightLayout.constant) / 2
             }
             
             // Restore
-            // TODO: 想办法解决放大的情况下可以进行偏移的情况
-            if (abs(offset) < size) {
-//                UIView.animateWithDuration(0.5) {
-//                    self.moveLayout.constant = 0
-//                    self.layoutIfNeeded()
-//                }
+            if (index == 0 && offset >= 0) || (index == models.count-1 && offset <= 0) || (abs(offset) < size) {
+                var constant: CGFloat
+                if direction {
+                    constant = widthLayout.constant / 2
+                } else {
+                    constant = heightLayout.constant / 2
+                }
+                
+                if abs(offset) > constant {
+                    UIView.animateWithDuration(0.5) {
+                        self.moveLayout.constant = self.offset > 0 ? constant : -constant
+                        self.layoutIfNeeded()
+                    }
+                }
                 return
             }
             
-            if (index == 0 && offset >= 0) || (index == models.count-1 && offset <= 0) {
-                UIView.animateWithDuration(0.5) {
-                    self.moveLayout.constant = 0
-                    self.layoutIfNeeded()
-                }
-                return
+            
+            
+            var layout: CGFloat
+            if direction {
+                layout = widthLayout.constant / 2
+            } else {
+                layout = heightLayout.constant / 2
             }
             
             // -1
             if offset > size {
                 index -= 1
                 updateImage()
-                moveLayout.constant = moveLayout.constant - size * 2
+                moveLayout.constant = moveLayout.constant + layout - size * 2
                 rheightLayout.constant = heightLayout.constant
                 rwidthLayout.constant  = widthLayout.constant
                 heightLayout.constant  = 0
@@ -267,7 +282,7 @@ class Carousel: UIView {
             if offset < -size {
                 index += 1
                 updateImage()
-                moveLayout.constant = size * 2 + moveLayout.constant
+                moveLayout.constant = size * 2 + moveLayout.constant - layout
                 lheightLayout.constant = heightLayout.constant
                 lwidthLayout.constant  = widthLayout.constant
                 heightLayout.constant  = 0
