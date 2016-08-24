@@ -9,6 +9,29 @@
 > 
 > 
 
+    func save(data: NSData?, name: String, time: NSTimeInterval = 0, folder: String = "", replace: Bool = false, infos: [String: AnyObject]? = nil, cache: Bool = true) -> Bool
+    func read(folder: String = "", name: String) -> NSData?
+    func remove(folder: String = "", name: String, infos: [String: AnyObject]? = nil)
+    func move(folder: String, name: String, toFolder: String, toName: String, time: NSTimeInterval, infos: [String: AnyObject]? = nil) -> Bool
+    func copy(folder: String, name: String, toFolder: String, toName: String, time: NSTimeInterval, infos: [String: AnyObject]? = nil) -> Bool
+    // MARK: Specific Data Tool
+    func readImage(folder: String = "", name: String) -> UIImage?
+    func saveImage(image: UIImage?, name: String, time: NSTimeInterval = 0, folder: String = "", replace: Bool = false, infos: [String: AnyObject]? = nil, cache: Bool = true) -> Bool
+    // MARK: Path and Url
+    func path(folder: String = "", name: String) -> String?
+    func url(folder: String = "", name: String) -> NSURL?
+    // MARK: Delay
+    func delay(folder: String = "", name: String, time: NSTimeInterval) -> Bool
+    // MARK: Clear
+    func clearTemporary()
+    func clearAll()
+    func clearCache()
+    class func createDirectory(path: String) -> Bool
+    class func isFilenameValid(path: String) -> Bool
+    class func sizeForFile(path: String) -> Double
+    class func sizeForFolder(path: String, traverseSub: Bool = true) -> Double
+
+
 # 设计思路
 
 * 通过一个单例类来进行文件系统的管理，开发时不再需要考虑文件夹，文件的创建以及归档问题。
@@ -78,3 +101,4 @@ YYCache 等缓存库的学习和了解。以及工作当中对数据的存储需
 
 * 2016-08-19 创建文件以及初步实现方式
 * 2016-08-20 了解更多有关缓存库的构成，构思想法
+
