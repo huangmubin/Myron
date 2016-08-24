@@ -1,108 +1,56 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15F34" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="Ds6-ed-h58">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.Storyboard.XIB" version="3.0" toolsVersion="10117" systemVersion="15G31" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" initialViewController="gNi-tW-ff8">
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
     </dependencies>
     <scenes>
-        <!--View Controller-->
-        <scene sceneID="tne-QT-ifu">
-            <objects>
-                <viewController automaticallyAdjustsScrollViewInsets="NO" id="BYZ-38-t0r" customClass="ViewController" customModule="iOS_Test_Product" customModuleProvider="target" sceneMemberID="viewController">
-                    <layoutGuides>
-                        <viewControllerLayoutGuide type="top" id="y3c-jy-aDJ"/>
-                        <viewControllerLayoutGuide type="bottom" id="wfy-db-euE"/>
-                    </layoutGuides>
-                    <view key="view" contentMode="scaleToFill" id="8bC-Xf-vdC">
-                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
-                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
-                        <subviews>
-<<<<<<< HEAD
-                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="asd-CB-71F">
-                                <rect key="frame" x="40" y="220" width="240" height="128"/>
-                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
-                            </view>
-=======
-                            <tableView clipsSubviews="YES" contentMode="scaleToFill" alwaysBounceVertical="YES" dataMode="prototypes" style="plain" separatorStyle="default" rowHeight="209" sectionHeaderHeight="28" sectionFooterHeight="28" translatesAutoresizingMaskIntoConstraints="NO" id="211-Ys-nDN">
-                                <rect key="frame" x="0.0" y="64" width="320" height="504"/>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
-                                <prototypes>
-                                    <tableViewCell clipsSubviews="YES" contentMode="scaleToFill" selectionStyle="default" indentationWidth="10" reuseIdentifier="Cell" textLabel="MOu-zL-PLK" rowHeight="209" style="IBUITableViewCellStyleDefault" id="gjd-H2-3ow">
-                                        <rect key="frame" x="0.0" y="28" width="320" height="209"/>
-                                        <autoresizingMask key="autoresizingMask"/>
-                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="gjd-H2-3ow" id="Aeh-Ba-Q0Z">
-                                            <rect key="frame" x="0.0" y="0.0" width="320" height="208"/>
-                                            <autoresizingMask key="autoresizingMask"/>
-                                            <subviews>
-                                                <label opaque="NO" multipleTouchEnabled="YES" contentMode="left" text="Title" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="MOu-zL-PLK">
-                                                    <rect key="frame" x="15" y="0.0" width="290" height="208"/>
-                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
-                                                    <fontDescription key="fontDescription" type="system" pointSize="16"/>
-                                                    <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
-                                                    <nil key="highlightedColor"/>
-                                                </label>
-                                            </subviews>
-                                        </tableViewCellContentView>
-                                    </tableViewCell>
-                                </prototypes>
-                                <connections>
-                                    <outlet property="dataSource" destination="BYZ-38-t0r" id="aDz-CI-hDN"/>
-                                    <outlet property="delegate" destination="BYZ-38-t0r" id="8dI-bm-TIY"/>
-                                </connections>
-                            </tableView>
->>>>>>> origin/master
-                        </subviews>
-                        <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="calibratedWhite"/>
-                        <constraints>
-                            <constraint firstItem="211-Ys-nDN" firstAttribute="top" secondItem="y3c-jy-aDJ" secondAttribute="bottom" id="8ae-as-lHU"/>
-                            <constraint firstItem="211-Ys-nDN" firstAttribute="leading" secondItem="8bC-Xf-vdC" secondAttribute="leading" id="AT7-68-WDS"/>
-                            <constraint firstAttribute="trailing" secondItem="211-Ys-nDN" secondAttribute="trailing" id="u7m-ou-7TU"/>
-                            <constraint firstItem="wfy-db-euE" firstAttribute="top" secondItem="211-Ys-nDN" secondAttribute="bottom" id="yDz-jQ-oYO"/>
-                        </constraints>
-                    </view>
-                    <navigationItem key="navigationItem" id="t2a-vi-Fut">
-                        <barButtonItem key="leftBarButtonItem" title="Item" id="3F4-13-SpW">
-                            <connections>
-                                <action selector="lefitAction:" destination="BYZ-38-t0r" id="tv8-Nb-g9o"/>
-                            </connections>
-                        </barButtonItem>
-                        <barButtonItem key="rightBarButtonItem" title="Item" id="KGg-k5-UMD">
-                            <connections>
-                                <action selector="rightAction:" destination="BYZ-38-t0r" id="CiA-6y-tht"/>
-                            </connections>
-                        </barButtonItem>
-                    </navigationItem>
-                    <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
-                    <connections>
-                        <outlet property="tableView" destination="211-Ys-nDN" id="KHq-c0-h9X"/>
-                    </connections>
-                </viewController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
-            </objects>
-<<<<<<< HEAD
-            <point key="canvasLocation" x="549" y="395"/>
-=======
-            <point key="canvasLocation" x="1022" y="-352"/>
-        </scene>
         <!--Navigation Controller-->
-        <scene sceneID="Mjf-ie-qYv">
+        <scene sceneID="CNR-by-ZH9">
             <objects>
-                <navigationController automaticallyAdjustsScrollViewInsets="NO" id="Ds6-ed-h58" sceneMemberID="viewController">
-                    <toolbarItems/>
+                <navigationController id="gNi-tW-ff8" sceneMemberID="viewController">
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
-                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="xaS-kl-UfY">
+                    <navigationBar key="navigationBar" contentMode="scaleToFill" id="5FC-Dj-sSC">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="44"/>
                         <autoresizingMask key="autoresizingMask"/>
                     </navigationBar>
-                    <nil name="viewControllers"/>
                     <connections>
-                        <segue destination="BYZ-38-t0r" kind="relationship" relationship="rootViewController" id="tPB-Ie-Lmh"/>
+                        <segue destination="2La-9G-TMX" kind="relationship" relationship="rootViewController" id="3Ni-UE-6Ip"/>
                     </connections>
                 </navigationController>
-                <placeholder placeholderIdentifier="IBFirstResponder" id="fvX-KN-aN4" userLabel="First Responder" sceneMemberID="firstResponder"/>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="X3k-Jh-AGZ" userLabel="First Responder" sceneMemberID="firstResponder"/>
             </objects>
-            <point key="canvasLocation" x="402" y="-352"/>
->>>>>>> origin/master
+            <point key="canvasLocation" x="-128" y="537"/>
+        </scene>
+        <!--View Controller-->
+        <scene sceneID="1BU-8I-0MU">
+            <objects>
+                <viewController id="2La-9G-TMX" customClass="ViewController" customModule="iOS_Test_Product" customModuleProvider="target" sceneMemberID="viewController">
+                    <layoutGuides>
+                        <viewControllerLayoutGuide type="top" id="gr0-zb-8GV"/>
+                        <viewControllerLayoutGuide type="bottom" id="TG6-fU-eYh"/>
+                    </layoutGuides>
+                    <view key="view" contentMode="scaleToFill" id="gZE-8W-fAr">
+                        <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
+                        <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                    </view>
+                    <navigationItem key="navigationItem" id="FTc-o3-8Rb">
+                        <barButtonItem key="leftBarButtonItem" title="Item" id="F9f-p2-f0P">
+                            <connections>
+                                <action selector="lefitAction:" destination="2La-9G-TMX" id="ggk-AK-oro"/>
+                            </connections>
+                        </barButtonItem>
+                        <barButtonItem key="rightBarButtonItem" title="Item" id="Uad-ex-Ax9">
+                            <connections>
+                                <action selector="rightAction:" destination="2La-9G-TMX" id="xTC-hu-432"/>
+                            </connections>
+                        </barButtonItem>
+                    </navigationItem>
+                </viewController>
+                <placeholder placeholderIdentifier="IBFirstResponder" id="0us-jQ-Xdw" userLabel="First Responder" sceneMemberID="firstResponder"/>
+            </objects>
+            <point key="canvasLocation" x="275" y="537"/>
         </scene>
     </scenes>
 </document>
