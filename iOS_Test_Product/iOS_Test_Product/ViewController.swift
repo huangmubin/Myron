@@ -37,7 +37,7 @@ class ViewController: UIViewController {
     }
 
     @IBAction func rightAction(sender: UIBarButtonItem) {
-        
+        carousel.remove()
     }
     
 }

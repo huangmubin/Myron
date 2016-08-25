@@ -8,11 +8,73 @@
 
 import UIKit
 
+// MARK: - Protocol
+
+@objc protocol CarouselDelegate: NSObjectProtocol {
+    
+    optional func carouselBeginPan(carousel: Carousel, index: Int)
+    optional func carouseIndexChanged(carousel: Carousel, index: Int)
+    optional func carouseTapImage(carousel: Carousel, index: Int)
+    
+}
+
+protocol CarouselModelDelegate: NSObjectProtocol {
+    func carouselModelImageDownload(model: CarouselModel, data: NSData)
+    func carouselModelDefaultImage(model: CarouselModel) -> UIImage?
+}
+
 // MARK: - Carousel Model
 
 class CarouselModel {
-    var image: UIImage?
     var name: String = ""
+    var delegate: CarouselModelDelegate?
+    
+    private var _image: UIImage?
+    var image: UIImage? {
+        set {
+            _image = newValue
+        }
+        get {
+            if _image == nil {
+                if data != nil {
+                    _image = UIImage(data: data!)
+                } else if required != nil {
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+                        let session = NSURLSession.sharedSession()
+                        session.dataTaskWithRequest(self.required!, completionHandler: { (data, response, error) in
+                            if let data = data {
+                                if let image = UIImage(data: data) {
+                                    dispatch_async(dispatch_get_main_queue()) {
+                                        self._image = image
+                                        self.delegate?.carouselModelImageDownload(self, data: data)
+                                    }
+                                }
+                            }
+                        })
+                    }
+                } else if url != nil {
+                    dispatch_async(dispatch_get_global_queue(DISPATCH_QUEUE_PRIORITY_DEFAULT, 0)) {
+                        if let loadurl = NSURL(string: self.url!) {
+                            if let data = NSData(contentsOfURL: loadurl) {
+                                if let image = UIImage(data: data) {
+                                    dispatch_async(dispatch_get_main_queue()) {
+                                        self._image = image
+                                        self.delegate?.carouselModelImageDownload(self, data: data)
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return _image ?? delegate?.carouselModelDefaultImage(self)
+        }
+    }
+    
+    var data: NSData?
+    var required: NSURLRequest?
+    var url: String?
+    
 }
 
 // MARK: - Carousel
@@ -21,9 +83,18 @@ class Carousel: UIView {
     // MARK: Datas
     
     /// Carousel Data Models
-    var models = [CarouselModel]()
+    var models = [CarouselModel]() {
+        didSet {
+            pageControl.numberOfPages = models.count
+        }
+    }
     /// Carousel Index
-    var index = 0
+    var index = 0 {
+        didSet {
+            updateImage()
+            pageControl.currentPage = index
+        }
+    }
     /// Rolling direction is horizontal or vertical, default horizontal.
     var direction = true {
         didSet {
@@ -31,6 +102,8 @@ class Carousel: UIView {
             layoutIfNeeded()
         }
     }
+    /// Delegate
+    var delegate: CarouselDelegate?
     
     // MARK: Methods
     
@@ -53,6 +126,29 @@ class Carousel: UIView {
         layoutIfNeeded()
     }
     
+    /// Delete
+    func remove() {
+        guard self.models.count > 0 else { return }
+        UIView.animateWithDuration(0.3, animations: { 
+            self.heightLayout.constant = -self.bounds.height
+            self.widthLayout.constant  = -self.bounds.width
+            self.moveLayout.constant   = self.index == self.models.count-1 ? self.bounds.width/2 : -self.bounds.width/2
+            self.layoutIfNeeded()
+            }) { (finish) in
+                self.heightLayout.constant = 0
+                self.widthLayout.constant  = 0
+                self.moveLayout.constant   = 0
+                if self.index == self.models.count-1 {
+                    self.models.removeAtIndex(self.index)
+                    self.index -= 1
+                } else {
+                    self.models.removeAtIndex(self.index)
+                    self.updateImage()
+                }
+                self.layoutIfNeeded()
+        }
+    }
+    
     // MARK: Views
     
     /// Left Subview
@@ -61,6 +157,9 @@ class Carousel: UIView {
     private var centerView: UIImageView = UIImageView()
     /// Right Subview
     private var rightView: UIImageView = UIImageView()
+    /// Page Control
+    var pageControl: UIPageControl = UIPageControl()
+    
     
     // MARK: Gestures
     
@@ -68,6 +167,10 @@ class Carousel: UIView {
     private var pan: UIPanGestureRecognizer!
     /// Pinch Gesture
     private var pinch: UIPinchGestureRecognizer!
+    /// Tap Gesture
+    private var tap: UITapGestureRecognizer!
+    /// Tap Gesture
+    private var doubleTap: UITapGestureRecognizer!
     
     // MARK: Layouts
     
@@ -142,9 +245,28 @@ class Carousel: UIView {
         // Gesture
         pan = UIPanGestureRecognizer(target: self, action: #selector(panGestureAction))
         addGestureRecognizer(pan)
+        
         pinch = UIPinchGestureRecognizer(target: self, action: #selector(pinchGestureAction))
         addGestureRecognizer(pinch)
         
+        tap = UITapGestureRecognizer(target: self, action: #selector(tapGestureAction))
+        tap.numberOfTapsRequired = 1
+        addGestureRecognizer(tap)
+        
+        doubleTap = UITapGestureRecognizer(target: self, action: #selector(doubleTapGestureAction))
+        doubleTap.numberOfTapsRequired = 2
+        addGestureRecognizer(doubleTap)
+        
+        tap.requireGestureRecognizerToFail(doubleTap)
+        
+        //
+        pageControl.numberOfPages = models.count
+        pageControl.translatesAutoresizingMaskIntoConstraints = false
+        addSubview(pageControl)
+        let CenterX = NSLayoutConstraint(item: pageControl, attribute: .CenterX, relatedBy: .Equal, toItem: self, attribute: .CenterX, multiplier: 1, constant: 0)
+        let Bottom = NSLayoutConstraint(item: pageControl, attribute: .Bottom, relatedBy: .Equal, toItem: self, attribute: .Bottom, multiplier: 1, constant: 10)
+        self.addConstraint(CenterX)
+        self.addConstraint(Bottom)
     }
     
     /// Clear Layouts and add new layout according to the direction.
@@ -180,9 +302,12 @@ class Carousel: UIView {
     
     /// Update the imageviews's image by models and index.
     private func updateImage() {
-        if index < models.count {
+        if index >= 0 && index < models.count {
             centerView.image = models[index].image
         } else {
+            leftView.image   = nil
+            centerView.image = nil
+            rightView.image  = nil
             return
         }
         
@@ -203,6 +328,7 @@ class Carousel: UIView {
     
     private var offset: CGFloat = 0
     private var begin: CGFloat = 0
+    private var size: CGFloat = 0
     @objc private func panGestureAction(sender: UIPanGestureRecognizer) {
         if direction {
             offset = sender.translationInView(self).x
@@ -212,43 +338,54 @@ class Carousel: UIView {
         
         switch sender.state {
         case .Began:
+            delegate?.carouselBeginPan?(self, index: index)
             begin = moveLayout.constant
             fallthrough
         case .Changed:
             offset += begin
-            if (index == 0 && offset >= 0) || (index == models.count-1 && offset <= 0) {
-                offset *= 0.3
+            if direction {
+                size = widthLayout.constant / 2
+            } else {
+                size = heightLayout.constant / 2
+            }
+            if index == 0 && offset >= size {
+                offset = size + (offset - size) * 0.3
+            }
+            if index == models.count-1 && offset <= -size {
+                offset = (offset + size) * 0.3 - size
             }
             self.moveLayout.constant = offset
             self.layoutIfNeeded()
         default:
             offset += begin
-            var size: CGFloat
+            var velocity: CGFloat
             if direction {
                 size = (bounds.width + widthLayout.constant) / 2
+                velocity = sender.velocityInView(self).x
             } else {
                 size = (bounds.width + heightLayout.constant) / 2
+                velocity = sender.velocityInView(self).y
             }
             
             // Restore
-            if (index == 0 && offset >= 0) || (index == models.count-1 && offset <= 0) || (abs(offset) < size) {
-                var constant: CGFloat
-                if direction {
-                    constant = widthLayout.constant / 2
-                } else {
-                    constant = heightLayout.constant / 2
-                }
-                
-                if abs(offset) > constant {
-                    UIView.animateWithDuration(0.5) {
-                        self.moveLayout.constant = self.offset > 0 ? constant : -constant
-                        self.layoutIfNeeded()
+            if abs(velocity) < 500 {
+                if (index == 0 && offset >= 0) || (index == models.count-1 && offset <= 0) || (abs(offset) < size) {
+                    var constant: CGFloat
+                    if direction {
+                        constant = widthLayout.constant / 2
+                    } else {
+                        constant = heightLayout.constant / 2
                     }
+                    
+                    if abs(offset) > constant {
+                        UIView.animateWithDuration(0.3) {
+                            self.moveLayout.constant = self.offset > 0 ? constant : -constant
+                            self.layoutIfNeeded()
+                        }
+                    }
+                    return
                 }
-                return
             }
-            
-            
             
             var layout: CGFloat
             if direction {
@@ -258,19 +395,19 @@ class Carousel: UIView {
             }
             
             // -1
-            if offset > size {
+            if (offset > size || velocity > 500) && index > 0 {
                 index -= 1
-                updateImage()
                 moveLayout.constant = moveLayout.constant + layout - size * 2
                 rheightLayout.constant = heightLayout.constant
                 rwidthLayout.constant  = widthLayout.constant
                 heightLayout.constant  = 0
                 widthLayout.constant   = 0
                 layoutIfNeeded()
-                UIView.animateWithDuration(0.5, animations: { 
+                UIView.animateWithDuration(0.3, animations: {
                     self.moveLayout.constant = 0
                     self.layoutIfNeeded()
                 }, completion: { (finish) in
+                        self.delegate?.carouseIndexChanged?(self, index: self.index)
                         self.rheightLayout.constant = 0
                         self.rwidthLayout.constant = 0
                         self.layoutIfNeeded()
@@ -279,19 +416,19 @@ class Carousel: UIView {
             }
             
             // +1
-            if offset < -size {
+            if (offset < -size || velocity < -500) && index < models.count-1 {
                 index += 1
-                updateImage()
                 moveLayout.constant = size * 2 + moveLayout.constant - layout
                 lheightLayout.constant = heightLayout.constant
                 lwidthLayout.constant  = widthLayout.constant
                 heightLayout.constant  = 0
                 widthLayout.constant   = 0
                 layoutIfNeeded()
-                UIView.animateWithDuration(0.5, animations: {
+                UIView.animateWithDuration(0.3, animations: {
                     self.moveLayout.constant = 0
                     self.layoutIfNeeded()
                     }, completion: { (finish) in
+                        self.delegate?.carouseIndexChanged?(self, index: self.index)
                         self.lheightLayout.constant = 0
                         self.lwidthLayout.constant = 0
                         self.layoutIfNeeded()
@@ -300,7 +437,7 @@ class Carousel: UIView {
             }
             
             // Other, if already have...
-            UIView.animateWithDuration(0.5) {
+            UIView.animateWithDuration(0.3) {
                 self.moveLayout.constant = 0
                 self.layoutIfNeeded()
             }
@@ -313,36 +450,109 @@ class Carousel: UIView {
         switch sender.state {
         case .Began:
             scale = CGSize(width: widthLayout.constant, height: heightLayout.constant)
+            
+            leftSideLayout.constant = -bounds.width * 5
+            rightSideLayout.constant = bounds.width * 5
         case .Changed:
             let offset = CGSize(width: bounds.width * (sender.scale - 1), height: bounds.height * (sender.scale - 1))
+            
+            //
             if offset.height + self.scale.height <= -bounds.height / 2 || offset.width + self.scale.width <= -bounds.width / 2 {
                 return
-            } else if offset.height + self.scale.height < 0 || offset.width + self.scale.width < 0 {
-                var size: CGFloat
-                if direction {
-                    size = -(offset.width + self.scale.width) / 2
-                } else {
-                    size = -(offset.height + self.scale.height) / 2
-                }
-                leftSideLayout.constant = -size
-                rightSideLayout.constant = size
-            } else {
-                leftSideLayout.constant = 0
-                rightSideLayout.constant = 0
             }
+            
             self.heightLayout.constant = offset.height + self.scale.height
             self.widthLayout.constant  = offset.width + self.scale.width
+            
             self.layoutIfNeeded()
         default:
             let offset = CGSize(width: bounds.width * (sender.scale - 1), height: bounds.height * (sender.scale - 1))
+            
+            //
             if offset.height + self.scale.height <= 0 {
-                UIView.animateWithDuration(0.5) {
+                UIView.animateWithDuration(0.3) {
                     self.heightLayout.constant = 0
                     self.widthLayout.constant  = 0
                     self.leftSideLayout.constant = 0
                     self.rightSideLayout.constant = 0
+                    self.moveLayout.constant = 0
                     self.layoutIfNeeded()
                 }
+                return
+            }
+            
+            //
+            if direction {
+                if moveLayout.constant > self.widthLayout.constant / 2 {
+                    UIView.animateWithDuration(0.3, animations: {
+                        self.moveLayout.constant = self.widthLayout.constant / 2
+                        self.layoutIfNeeded()
+                        }, completion: { (finish) in
+                            self.leftSideLayout.constant = 0
+                            self.rightSideLayout.constant = 0
+                            self.layoutIfNeeded()
+                    })
+                    return
+                } else if moveLayout.constant < -self.widthLayout.constant / 2 {
+                    UIView.animateWithDuration(0.3, animations: {
+                        self.moveLayout.constant = -self.widthLayout.constant / 2
+                        self.layoutIfNeeded()
+                        }, completion: { (finish) in
+                            self.leftSideLayout.constant = 0
+                            self.rightSideLayout.constant = 0
+                            self.layoutIfNeeded()
+                    })
+                    return
+                }
+            } else {
+                if moveLayout.constant > self.heightLayout.constant / 2 {
+                    UIView.animateWithDuration(0.3, animations: {
+                        self.moveLayout.constant = self.heightLayout.constant / 2
+                        self.layoutIfNeeded()
+                        }, completion: { (finish) in
+                            self.leftSideLayout.constant = 0
+                            self.rightSideLayout.constant = 0
+                            self.layoutIfNeeded()
+                    })
+                    return
+                } else if moveLayout.constant < -self.heightLayout.constant / 2 {
+                    UIView.animateWithDuration(0.3, animations: {
+                        self.moveLayout.constant = -self.heightLayout.constant / 2
+                        self.layoutIfNeeded()
+                        }, completion: { (finish) in
+                            self.leftSideLayout.constant = 0
+                            self.rightSideLayout.constant = 0
+                            self.layoutIfNeeded()
+                    })
+                    return
+                }
+            }
+            
+            
+            //
+            self.leftSideLayout.constant = 0
+            self.rightSideLayout.constant = 0
+            self.layoutIfNeeded()
+        }
+    }
+    
+    @objc private func tapGestureAction(sender: UITapGestureRecognizer) {
+        delegate?.carouseTapImage?(self, index: index)
+    }
+    
+    @objc private func doubleTapGestureAction(sender: UITapGestureRecognizer) {
+        if widthLayout.constant == 0 {
+            UIView.animateWithDuration(0.3) {
+                self.heightLayout.constant = self.bounds.height
+                self.widthLayout.constant = self.bounds.width
+                self.layoutIfNeeded()
+            }
+        } else {
+            UIView.animateWithDuration(0.3) {
+                self.heightLayout.constant = 0
+                self.widthLayout.constant = 0
+                self.moveLayout.constant = 0
+                self.layoutIfNeeded()
             }
         }
     }
