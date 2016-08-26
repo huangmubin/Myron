@@ -50,8 +50,6 @@ public class Network: NSObject {
         var session: NSURLSession!
         var request: NSURLRequest?
         var name: String
-//        var tasks: [(name: String, data: NSData?, response: NSURLResponse?, error: NSError?) -> NSURLRequest?] = []
-//        var responses: [(response: Response) -> NSURLRequest?] = []
         var tasks: [LinkTaskResponse] = []
         
         //
