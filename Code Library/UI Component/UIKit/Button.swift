@@ -23,7 +23,7 @@ class Button: UIButton {
     }
     
     func deploy() {
-        layer.shadowOffset = offset
+        layer.shadowOffset = CGSize(width: offset.x, height: offset.y)
         
         let select = self.selected
         self.selected = true
@@ -51,9 +51,9 @@ class Button: UIButton {
         }
     }
     /// 阴影偏移
-    @IBInspectable var offset: CGSize = CGSizeZero {
+    @IBInspectable var offset: CGPoint = CGPointZero {
         didSet {
-            layer.shadowOffset = offset
+            layer.shadowOffset = CGSize(width: offset.x, height: offset.y)
         }
     }
     /// 阴影距离
