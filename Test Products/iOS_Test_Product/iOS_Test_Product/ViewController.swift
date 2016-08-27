@@ -23,49 +23,28 @@ class Transion: NSObject, UIViewControllerAnimatedTransitioning {
     }
 }
 
-class ViewController: UIViewController, UINavigationControllerDelegate {
+class ViewController: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.navigationController?.delegate = self
-        
-        sub.frame = CGRect(x: 50, y: 50, width: 50, height: 50)
-        sub.backgroundColor = UIColor.brownColor()
-        view.addSubview(sub)
     }
+    @IBOutlet weak var wating: Wating!
 
-    let sub = UIView()
-    
-    func navigationController(navigationController: UINavigationController, animationControllerForOperation operation: UINavigationControllerOperation, fromViewController fromVC: UIViewController, toViewController toVC: UIViewController) -> UIViewControllerAnimatedTransitioning? {
-        if operation == UINavigationControllerOperation.Push {
-            return nil
-        } else {
-            return nil
-        }
-    }
-    
     @IBAction func lefitAction(sender: UIBarButtonItem) {
-        
+        wating.start()
     }
 
     @IBAction func rightAction(sender: UIBarButtonItem) {
-        
+        wating.end()
     }
     
-    var begin: ((view: UIView) -> Void)? = {
-        $0.frame = CGRect(x: 100, y: 200, width: 100, height: 100)
-    }
-    var end: ((Bool) -> Void)? = {
-        print("end = \($0)")
-    }
+    
     @IBAction func action(sender: UIButton) {
-        //self.performSegueWithIdentifier("Segue", sender: nil)
-        UIView.animateWithDuration(10, animations: { 
-            self.begin?(view: self.sub)
-            }, completion: end)
+        wating.label.text = "OK"
     }
     
     @IBAction func slider(sender: UISlider) {
+        wating.frame = CGRect(x: 0, y: 100, width: view.bounds.width * CGFloat(sender.value), height: view.bounds.width * CGFloat(sender.value))
     }
 }
 

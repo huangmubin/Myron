@@ -47,6 +47,10 @@
                                     <action selector="slider:" destination="2La-9G-TMX" eventType="valueChanged" id="lEh-6X-tSs"/>
                                 </connections>
                             </slider>
+                            <view contentMode="scaleToFill" fixedFrame="YES" translatesAutoresizingMaskIntoConstraints="NO" id="JUT-a7-aKr" customClass="Wating" customModule="iOS_Test_Product" customModuleProvider="target">
+                                <rect key="frame" x="96" y="220" width="128" height="128"/>
+                                <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                            </view>
                         </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
                     </view>
@@ -63,6 +67,7 @@
                         </barButtonItem>
                     </navigationItem>
                     <connections>
+                        <outlet property="wating" destination="JUT-a7-aKr" id="fep-65-fcF"/>
                         <segue destination="qSr-hz-ecT" kind="show" identifier="Segue" id="TYU-tw-8bl"/>
                     </connections>
                 </viewController>
