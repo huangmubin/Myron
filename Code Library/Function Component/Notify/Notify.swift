@@ -61,4 +61,16 @@ class Notify {
         }
     }
     
+    class func addMemoryWarningNotification(observer: AnyObject, selector: Selector, object: AnyObject? = nil) {
+        dispatch_async(queue) {
+            NSNotificationCenter.defaultCenter().addObserver(observer, selector: selector, name: UIApplicationDidReceiveMemoryWarningNotification, object: object)
+        }
+    }
+    
+    class func addDidEnterBackgroundNotification(observer: AnyObject, selector: Selector, object: AnyObject? = nil) {
+        dispatch_async(queue) {
+            NSNotificationCenter.defaultCenter().addObserver(observer, selector: selector, name: UIApplicationDidEnterBackgroundNotification, object: object)
+        }
+    }
+    
 }
