@@ -133,10 +133,18 @@ extension Network {
     /// 添加下载任务
     func add(task: Task, request: NSURLRequest) {
         queue.addOperationWithBlock {
-            guard !self.tasks.contains({ $0.name == task.name }) else { return }
-            task.task = self.session.dataTaskWithRequest(request)
-            task.task?.taskDescription = task.name
-            self.tasks.append(task)
+            // guard !self.tasks.contains({ $0.name == task.name }) else { return }
+            // task.task = self.session.dataTaskWithRequest(request)
+            // task.task?.taskDescription = task.name
+            // self.tasks.append(task)
+            if let index = self.tasks.indexOf({ $0.name == task.name }) {
+                let task = self.tasks.removeAtIndex(index)
+                self.tasks.insert(task, atIndex: 0)
+            } else {
+                task.task = self.session.dataTaskWithRequest(request)
+                task.task?.taskDescription = task.name
+                self.tasks.append(task)
+            }
         }
     }
     
