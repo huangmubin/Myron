@@ -328,7 +328,7 @@ class Explorer: NSObject {
     // MARK: Property
     
     /// File list index manager. Default self.
-    private weak var index: ExplorerIndex!
+    weak var index: ExplorerIndex!
     /// Cache manager.
     var cache: ExplorerCache = ExplorerCache()
     /// Will you need to open the explorer cache? Default true.

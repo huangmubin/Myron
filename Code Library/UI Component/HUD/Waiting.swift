@@ -24,6 +24,8 @@ class Wating: UIView {
     
     private func load() {
         self.backgroundColor = UIColor.clearColor()
+        self.alpha = 0
+        
         let path = UIBezierPath(arcCenter: CGPoint(x: bounds.width/2, y: bounds.height/2), radius: bounds.width/2, startAngle: 0, endAngle: CGFloat(2*M_PI), clockwise: true)
         shape.frame = bounds
         shape.path = path.CGPath
@@ -67,7 +69,7 @@ class Wating: UIView {
     
     @IBInspectable var color: UIColor = UIColor.blueColor() {
         didSet {
-            shape.shadowColor = color.CGColor
+            shape.strokeColor = color.CGColor
         }
     }
     @IBInspectable var lineWidth: CGFloat = 2 {
