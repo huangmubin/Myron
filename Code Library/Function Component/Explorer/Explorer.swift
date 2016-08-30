@@ -306,9 +306,9 @@ class Explorer: NSObject {
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(clearTemporary), name: UIApplicationDidReceiveMemoryWarningNotification, object: nil)
         NSNotificationCenter.defaultCenter().addObserver(self, selector: #selector(clearTemporary), name: UIApplicationDidEnterBackgroundNotification, object: nil)
         
-        index = ExplorerUserDefault.shared
-        index.loadIndex()
-        clearTemporary()
+        //index = ExplorerUserDefault.shared
+        //index.loadIndex()
+        //clearTemporary()
     }
     class func loaded() {
         shared.clearCache()
@@ -361,15 +361,16 @@ class Explorer: NSObject {
         
         // 文件写入
         var result = false
+        let now = NSDate().timeIntervalSince1970
         if replace {
-            if index.insertIndex(name, folder: folder, time: time, infos: infos) {
+            if index.insertIndex(name, folder: folder, time: time + now, infos: infos) {
                 result = data.writeToFile(path, atomically: true)
             }
         } else {
             if manager.fileExistsAtPath(path) {
-                result = index.changeIndex(name, folder: folder, time: time, infos: infos)
+                result = index.changeIndex(name, folder: folder, time: time + now, infos: infos)
             } else {
-                if index.insertIndex(name, folder: folder, time: time, infos: infos) {
+                if index.insertIndex(name, folder: folder, time: time + now, infos: infos) {
                     if data.writeToFile(path, atomically: true) {
                         result = true
                     } else {
@@ -423,13 +424,14 @@ class Explorer: NSObject {
     func move(folder: String, name: String, toFolder: String, toName: String, time: NSTimeInterval, infos: [String: AnyObject]? = nil) -> Bool {
         lock.lock()
         var result = false
+        let now = NSDate().timeIntervalSince1970
         if Explorer.createDirectory(self.path + toFolder + toName) {
-            if index.moveIndex(folder, name: name, toFolder: toFolder, toName: toName, time: time, infos: infos) {
+            if index.moveIndex(folder, name: name, toFolder: toFolder, toName: toName, time: time + now, infos: infos) {
                 do {
                     try manager.moveItemAtPath(folder + name, toPath: toFolder + toName)
                     result = true
                 } catch {
-                    index.moveIndex(toFolder, name: toName, toFolder: folder, toName: name, time: time, infos: infos)
+                    index.moveIndex(toFolder, name: toName, toFolder: folder, toName: name, time: time + now, infos: infos)
                 }
             }
         }
@@ -441,8 +443,9 @@ class Explorer: NSObject {
     func copy(folder: String, name: String, toFolder: String, toName: String, time: NSTimeInterval, infos: [String: AnyObject]? = nil) -> Bool {
         lock.lock()
         var result = false
+        let now = NSDate().timeIntervalSince1970
         if Explorer.createDirectory(self.path + toFolder + toName) {
-            if index.insertIndex(toName, folder: toFolder, time: time, infos: infos) {
+            if index.insertIndex(toName, folder: toFolder, time: time + now, infos: infos) {
                 do {
                     try manager.copyItemAtPath(folder + name, toPath: toFolder + toName)
                     result = true
@@ -501,15 +504,16 @@ class Explorer: NSObject {
         
         // 文件写入
         var result = false
+        let now = NSDate().timeIntervalSince1970
         if replace {
-            if index.insertIndex(name, folder: folder, time: time, infos: infos) {
+            if index.insertIndex(name, folder: folder, time: time + now, infos: infos) {
                 result = data.writeToFile(path, atomically: true)
             }
         } else {
             if manager.fileExistsAtPath(path) {
-                result = index.changeIndex(name, folder: folder, time: time, infos: infos)
+                result = index.changeIndex(name, folder: folder, time: time + now, infos: infos)
             } else {
-                if index.insertIndex(name, folder: folder, time: time, infos: infos) {
+                if index.insertIndex(name, folder: folder, time: time + now, infos: infos) {
                     if data.writeToFile(path, atomically: true) {
                         result = true
                     } else {
@@ -558,7 +562,8 @@ class Explorer: NSObject {
     func delay(folder: String = "", name: String, time: NSTimeInterval) -> Bool {
         lock.lock()
         var result = false
-        if index.delayIndex(folder, name: name, time: time) {
+        let now = NSDate().timeIntervalSince1970
+        if index.delayIndex(folder, name: name, time: time + now) {
             result = true
         }
         lock.unlock()
@@ -625,7 +630,7 @@ class Explorer: NSObject {
         // \/:*?"<>|
         for c in path.characters {
             switch c {
-            case "/", ":", "*", "?", "\"", "<", ">", "|":
+            case ":", "*", "?", "\"", "<", ">", "|":
                 return false
             default:
                 break

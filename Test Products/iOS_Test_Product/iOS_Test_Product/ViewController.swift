@@ -8,43 +8,35 @@
 
 import UIKit
 
-class Transion: NSObject, UIViewControllerAnimatedTransitioning {
-    
-    func transitionDuration(transitionContext: UIViewControllerContextTransitioning?) -> NSTimeInterval {
-        return 0.3
-    }
-    
-    func animateTransition(transitionContext: UIViewControllerContextTransitioning) {
-        
-    }
-    
-    func animationEnded(transitionCompleted: Bool) {
-        
-    }
-}
 
 class ViewController: UIViewController {
     
+    var move: UIView = UIView(frame: CGRect(x: 50, y: 50, width: 60, height: 60))
+    
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.navigationController?.delegate = ControllerTransition.transition
+        move.backgroundColor = UIColor.redColor()
+        view.addSubview(move)
     }
+    
     @IBOutlet weak var wating: Wating!
 
     @IBAction func lefitAction(sender: UIBarButtonItem) {
-        wating.start()
+        //wating.start()
     }
 
     @IBAction func rightAction(sender: UIBarButtonItem) {
-        wating.end()
+        //wating.end()
     }
     
     
     @IBAction func action(sender: UIButton) {
-        wating.label.text = "OK"
+        //wating.label.text = "OK"
     }
     
     @IBAction func slider(sender: UISlider) {
-        wating.frame = CGRect(x: 0, y: 100, width: view.bounds.width * CGFloat(sender.value), height: view.bounds.width * CGFloat(sender.value))
+        //wating.frame = CGRect(x: 0, y: 100, width: view.bounds.width * CGFloat(sender.value), height: view.bounds.width * CGFloat(sender.value))
     }
 }
 

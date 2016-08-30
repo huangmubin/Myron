@@ -19,7 +19,7 @@ class View: UIView {
     /// 阴影扩展
     @IBInspectable var shadowRadius: CGFloat = 0 { didSet { draw() } }
     /// 阴影偏移
-    @IBInspectable var shadowOffset: CGSize = CGSizeZero { didSet { draw() } }
+    @IBInspectable var shadowOffset: CGPoint = CGPointZero { didSet { draw() } }
     /// 视图颜色
     @IBInspectable var color: UIColor = UIColor.blueColor() {
         didSet {
@@ -61,7 +61,7 @@ class View: UIView {
         backgroundColor = UIColor.clearColor()
         layer.shadowOpacity = shadowOpacity
         layer.shadowRadius = shadowRadius
-        layer.shadowOffset = shadowOffset
+        layer.shadowOffset = CGSize(width: shadowOffset.x, height: shadowOffset.y)
         layer.masksToBounds = clipsToBounds
         layer.backgroundColor = UIColor.clearColor().CGColor
         

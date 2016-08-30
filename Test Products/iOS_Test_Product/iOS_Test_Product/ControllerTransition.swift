@@ -24,12 +24,13 @@ class ControllerTransition: NSObject, UINavigationControllerDelegate, UIViewCont
     var duration: NSTimeInterval = 0
     
     /// Animation
-    var animationBegin: (() -> Void)? = nil
-    var animationBlock: ((from: UIViewController?, to: UIViewController?, container: UIView?) -> Void)? = nil
+    var animationBegin: ((from: UIViewController?, to: UIViewController?, container: UIView?) -> [String: AnyObject])? = nil
+    var animationBlock: ((from: UIViewController?, to: UIViewController?, container: UIView?, infos: [String: AnyObject]) -> Void)? = nil
     var animationEnd: ((Bool) -> Void)? = nil
     
     
     // MARK: - Percent
+    
     private var percentDrivenTransition: UIPercentDrivenInteractiveTransition?
     
     func percentStart() {
@@ -59,8 +60,9 @@ class ControllerTransition: NSObject, UINavigationControllerDelegate, UIViewCont
         let fromController = transitionContext.viewControllerForKey(UITransitionContextFromViewControllerKey)
         let toController = transitionContext.viewControllerForKey(UITransitionContextToViewControllerKey)
         let container = transitionContext.containerView()
+        let infos = animationBegin?(from: fromController, to: toController, container: container)
         UIView.animateWithDuration(transitionDuration(transitionContext)) {
-            self.animationBlock?(from: fromController, to: toController, container: container)
+            self.animationBlock?(from: fromController, to: toController, container: container, infos: infos ?? [:])
         }
     }
     

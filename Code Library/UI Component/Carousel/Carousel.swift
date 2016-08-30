@@ -13,8 +13,9 @@ import UIKit
 @objc protocol CarouselDelegate: NSObjectProtocol {
     
     optional func carouselBeginPan(carousel: Carousel, index: Int)
-    optional func carouseIndexChanged(carousel: Carousel, index: Int)
-    optional func carouseTapImage(carousel: Carousel, index: Int)
+    optional func carouselIndexChanged(carousel: Carousel, index: Int)
+    optional func carouselTapImage(carousel: Carousel, index: Int)
+    optional func carouselPinchAction(carousel: Carousel, pan: UIPinchGestureRecognizer, size: CGFloat)
     
 }
 
@@ -102,6 +103,10 @@ class Carousel: UIView {
             layoutIfNeeded()
         }
     }
+    /// Frame
+    var centerFrame: CGRect {
+        return centerView.frame
+    }
     /// Delegate
     var delegate: CarouselDelegate?
     
@@ -159,7 +164,8 @@ class Carousel: UIView {
     private var rightView: UIImageView = UIImageView()
     /// Page Control
     var pageControl: UIPageControl = UIPageControl()
-    
+    /// Title
+    var title: UILabel = UILabel()
     
     // MARK: Gestures
     
@@ -267,6 +273,12 @@ class Carousel: UIView {
         let Bottom = NSLayoutConstraint(item: pageControl, attribute: .Bottom, relatedBy: .Equal, toItem: self, attribute: .Bottom, multiplier: 1, constant: 10)
         self.addConstraint(CenterX)
         self.addConstraint(Bottom)
+        
+        //
+        self.addSubview(title)
+        title.translatesAutoresizingMaskIntoConstraints = false
+        self.addConstraint(NSLayoutConstraint(item: title, attribute: .CenterX, relatedBy: .Equal, toItem: self, attribute: .CenterX, multiplier: 1, constant: 0))
+        self.addConstraint(NSLayoutConstraint(item: title, attribute: .Top, relatedBy: .Equal, toItem: self, attribute: .Top, multiplier: 1, constant: 10))
     }
     
     /// Clear Layouts and add new layout according to the direction.
@@ -304,10 +316,12 @@ class Carousel: UIView {
     private func updateImage() {
         if index >= 0 && index < models.count {
             centerView.image = models[index].image
+            title.text = models[index].name
         } else {
             leftView.image   = nil
             centerView.image = nil
             rightView.image  = nil
+            title.text = nil
             return
         }
         
@@ -407,7 +421,7 @@ class Carousel: UIView {
                     self.moveLayout.constant = 0
                     self.layoutIfNeeded()
                 }, completion: { (finish) in
-                        self.delegate?.carouseIndexChanged?(self, index: self.index)
+                        self.delegate?.carouselIndexChanged?(self, index: self.index)
                         self.rheightLayout.constant = 0
                         self.rwidthLayout.constant = 0
                         self.layoutIfNeeded()
@@ -428,7 +442,7 @@ class Carousel: UIView {
                     self.moveLayout.constant = 0
                     self.layoutIfNeeded()
                     }, completion: { (finish) in
-                        self.delegate?.carouseIndexChanged?(self, index: self.index)
+                        self.delegate?.carouselIndexChanged?(self, index: self.index)
                         self.lheightLayout.constant = 0
                         self.lwidthLayout.constant = 0
                         self.layoutIfNeeded()
@@ -453,19 +467,26 @@ class Carousel: UIView {
             
             leftSideLayout.constant = -bounds.width * 5
             rightSideLayout.constant = bounds.width * 5
+            
+            delegate?.carouselPinchAction?(self, pan: sender, size: (self.heightLayout.constant + self.bounds.height) / self.bounds.height)
         case .Changed:
             let offset = CGSize(width: bounds.width * (sender.scale - 1), height: bounds.height * (sender.scale - 1))
             
             //
-            if offset.height + self.scale.height <= -bounds.height / 2 || offset.width + self.scale.width <= -bounds.width / 2 {
+            if offset.height + self.scale.height <= -bounds.height * 0.8 || offset.width + self.scale.width <= -bounds.width * 0.8 {
                 return
             }
             
             self.heightLayout.constant = offset.height + self.scale.height
             self.widthLayout.constant  = offset.width + self.scale.width
             
+            
             self.layoutIfNeeded()
+            
+            delegate?.carouselPinchAction?(self, pan: sender, size: (self.heightLayout.constant + self.bounds.height) / self.bounds.height)
         default:
+            delegate?.carouselPinchAction?(self, pan: sender, size: (self.heightLayout.constant + self.bounds.height) / self.bounds.height)
+            
             let offset = CGSize(width: bounds.width * (sender.scale - 1), height: bounds.height * (sender.scale - 1))
             
             //
@@ -537,7 +558,7 @@ class Carousel: UIView {
     }
     
     @objc private func tapGestureAction(sender: UITapGestureRecognizer) {
-        delegate?.carouseTapImage?(self, index: index)
+        delegate?.carouselTapImage?(self, index: index)
     }
     
     @objc private func doubleTapGestureAction(sender: UITapGestureRecognizer) {
