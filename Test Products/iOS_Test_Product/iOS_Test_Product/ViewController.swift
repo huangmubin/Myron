@@ -24,10 +24,12 @@ class ViewController: UIViewController {
 
     @IBAction func lefitAction(sender: UIBarButtonItem) {
         //wating.start()
+        Prompt.dismiss(view)
     }
 
     @IBAction func rightAction(sender: UIBarButtonItem) {
         //wating.end()
+        Prompt.show(view, type: PromptType.Loading, text: "Sueeeesdfsafdasfasdfasdfasdfas", time: 0)
     }
     
     

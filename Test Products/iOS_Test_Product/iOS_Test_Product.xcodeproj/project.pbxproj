@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		B10FC5AB1D712E1400AFDDD0 /* Wating.swift in Sources */ = {isa = PBXBuildFile; fileRef = B10FC5AA1D712E1400AFDDD0 /* Wating.swift */; };
+		B139F5B61D7667F60069C1BA /* Prompt.swift in Sources */ = {isa = PBXBuildFile; fileRef = B139F5B51D7667F60069C1BA /* Prompt.swift */; };
 		B149910E1D6EE3CE000CFB58 /* ControllerTransition.swift in Sources */ = {isa = PBXBuildFile; fileRef = B149910D1D6EE3CE000CFB58 /* ControllerTransition.swift */; };
 		B17A13921D6D87A10009EDFD /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = B17A13901D6D87A10009EDFD /* Main.storyboard */; };
 		B1975CD21D66D42400A46EFF /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = B1975CD11D66D42400A46EFF /* AppDelegate.swift */; };
@@ -18,6 +19,7 @@
 
 /* Begin PBXFileReference section */
 		B10FC5AA1D712E1400AFDDD0 /* Wating.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Wating.swift; sourceTree = "<group>"; };
+		B139F5B51D7667F60069C1BA /* Prompt.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Prompt.swift; sourceTree = "<group>"; };
 		B149910D1D6EE3CE000CFB58 /* ControllerTransition.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = ControllerTransition.swift; sourceTree = "<group>"; };
 		B17A13911D6D87A10009EDFD /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = iOS_Test_Product/Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		B1975CCE1D66D42400A46EFF /* iOS_Test_Product.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iOS_Test_Product.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -68,6 +70,7 @@
 			children = (
 				B149910D1D6EE3CE000CFB58 /* ControllerTransition.swift */,
 				B10FC5AA1D712E1400AFDDD0 /* Wating.swift */,
+				B139F5B51D7667F60069C1BA /* Prompt.swift */,
 				B1975CD11D66D42400A46EFF /* AppDelegate.swift */,
 				B1975CD31D66D42400A46EFF /* ViewController.swift */,
 				B17A13901D6D87A10009EDFD /* Main.storyboard */,
@@ -150,6 +153,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				B149910E1D6EE3CE000CFB58 /* ControllerTransition.swift in Sources */,
+				B139F5B61D7667F60069C1BA /* Prompt.swift in Sources */,
 				B10FC5AB1D712E1400AFDDD0 /* Wating.swift in Sources */,
 				B1975CD41D66D42400A46EFF /* ViewController.swift in Sources */,
 				B1975CD21D66D42400A46EFF /* AppDelegate.swift in Sources */,

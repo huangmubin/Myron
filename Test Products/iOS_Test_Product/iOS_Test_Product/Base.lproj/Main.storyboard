@@ -3,6 +3,7 @@
     <dependencies>
         <deployment identifier="iOS"/>
         <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="10085"/>
+        <capability name="Aspect ratio constraints" minToolsVersion="5.1"/>
     </dependencies>
     <scenes>
         <!--Navigation Controller-->
@@ -86,7 +87,45 @@
                     <view key="view" contentMode="scaleToFill" id="57N-Lh-Xpc">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
+                        <subviews>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="3OI-DZ-vCu">
+                                <rect key="frame" x="145" y="254" width="30" height="30"/>
+                                <color key="backgroundColor" red="0.0" green="0.47843137250000001" blue="1" alpha="1" colorSpace="calibratedRGB"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" constant="30" id="2Qm-Lb-LhM"/>
+                                    <constraint firstAttribute="height" constant="30" id="4xB-CW-kv9"/>
+                                </constraints>
+                            </view>
+                            <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Loadifffffffffffng" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="wGF-Ds-lNI">
+                                <rect key="frame" x="98" y="292" width="125" height="21"/>
+                                <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                <color key="textColor" cocoaTouchSystemColor="darkTextColor"/>
+                                <nil key="highlightedColor"/>
+                            </label>
+                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="fwX-SO-v2u">
+                                <rect key="frame" x="78" y="202" width="164" height="164"/>
+                                <subviews>
+                                    <activityIndicatorView opaque="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="750" fixedFrame="YES" style="white" translatesAutoresizingMaskIntoConstraints="NO" id="fqD-pC-AQW">
+                                        <rect key="frame" x="67" y="144" width="20" height="20"/>
+                                    </activityIndicatorView>
+                                </subviews>
+                                <color key="backgroundColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                <constraints>
+                                    <constraint firstAttribute="width" secondItem="fwX-SO-v2u" secondAttribute="height" id="paL-wW-Tiz"/>
+                                </constraints>
+                            </view>
+                        </subviews>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
+                        <constraints>
+                            <constraint firstItem="fwX-SO-v2u" firstAttribute="top" secondItem="3OI-DZ-vCu" secondAttribute="top" priority="250" constant="-10" id="7Lj-i9-DpB"/>
+                            <constraint firstItem="3OI-DZ-vCu" firstAttribute="centerX" secondItem="57N-Lh-Xpc" secondAttribute="centerX" id="8nD-ME-eGe"/>
+                            <constraint firstItem="fwX-SO-v2u" firstAttribute="centerY" secondItem="57N-Lh-Xpc" secondAttribute="centerY" id="9Kn-9u-On5"/>
+                            <constraint firstItem="3OI-DZ-vCu" firstAttribute="centerY" secondItem="57N-Lh-Xpc" secondAttribute="centerY" constant="-15" id="AI4-Rs-Ew1"/>
+                            <constraint firstItem="fwX-SO-v2u" firstAttribute="centerX" secondItem="57N-Lh-Xpc" secondAttribute="centerX" id="Bch-Nu-svJ"/>
+                            <constraint firstItem="wGF-Ds-lNI" firstAttribute="centerX" secondItem="57N-Lh-Xpc" secondAttribute="centerX" id="F5l-Vz-700"/>
+                            <constraint firstItem="wGF-Ds-lNI" firstAttribute="top" secondItem="3OI-DZ-vCu" secondAttribute="bottom" constant="8" id="UxV-J3-B2h"/>
+                            <constraint firstItem="fwX-SO-v2u" firstAttribute="leading" relation="lessThanOrEqual" secondItem="wGF-Ds-lNI" secondAttribute="leading" constant="-20" id="bvh-LB-PgL"/>
+                        </constraints>
                     </view>
                     <simulatedScreenMetrics key="simulatedDestinationMetrics" type="retina4"/>
                 </viewController>
