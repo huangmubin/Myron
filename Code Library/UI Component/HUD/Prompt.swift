@@ -19,7 +19,7 @@ enum PromptType {
 
 extension Prompt {
     
-    class func show(view: UIView, type: PromptType, text: String = "", time: Int = 0) -> Prompt {
+    class func show(view: UIView, type: PromptType, text: String = "", time: Int = 0, canBeTouch: Bool = false) -> Prompt {
         dismiss(view)
         
         let prompt = Prompt()
@@ -27,6 +27,10 @@ extension Prompt {
         prompt.label.text = text
         prompt.label.sizeToFit()
         prompt.deploy()
+        
+        if canBeTouch {
+            prompt.button.hidden = true
+        }
         
         prompt.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(prompt)

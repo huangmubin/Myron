@@ -361,7 +361,7 @@ class Explorer: NSObject {
         
         // 文件写入
         var result = false
-        let now = NSDate().timeIntervalSince1970
+        let now = time == 0 ? 0 : NSDate().timeIntervalSince1970
         if replace {
             if index.insertIndex(name, folder: folder, time: time + now, infos: infos) {
                 result = data.writeToFile(path, atomically: true)
@@ -504,7 +504,7 @@ class Explorer: NSObject {
         
         // 文件写入
         var result = false
-        let now = NSDate().timeIntervalSince1970
+        let now = time == 0 ? 0 : NSDate().timeIntervalSince1970
         if replace {
             if index.insertIndex(name, folder: folder, time: time + now, infos: infos) {
                 result = data.writeToFile(path, atomically: true)

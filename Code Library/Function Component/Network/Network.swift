@@ -140,7 +140,9 @@ extension Network {
             if let index = self.tasks.indexOf({ $0.name == task.name }) {
                 let task = self.tasks.removeAtIndex(index)
                 self.tasks.insert(task, atIndex: 0)
+                //print("Network add self.tasks.indexOf({ $0.name == task.name }): \(task.name)")
             } else {
+                //print("Network add self.tasks.append(task): \(task.name)")
                 task.task = self.session.dataTaskWithRequest(request)
                 task.task?.taskDescription = task.name
                 self.tasks.append(task)
@@ -162,11 +164,42 @@ extension Network {
         }
     }
     
+    /// 开始下载任务
+    func resume(name task: String) {
+        queue.addOperationWithBlock {
+            if let index = self.tasks.indexOf({ $0.name == task }) {
+                self.tasks[index].task?.resume()
+            }
+        }
+    }
+    
+    /// 暂停下载任务
+    func suspend(name task: String) {
+        queue.addOperationWithBlock {
+            if let index = self.tasks.indexOf({ $0.name == task }) {
+                self.tasks[index].task?.suspend()
+            }
+        }
+    }
+    
     /// 取消下载任务
     func cancel(task: Task) {
         queue.addOperationWithBlock {
             task.task?.cancel()
         }
+    }
+    
+    func cancel(name task: String) {
+        queue.addOperationWithBlock {
+            if let index = self.tasks.indexOf({ $0.name == task }) {
+                self.tasks[index].task?.cancel()
+            }
+        }
+    }
+    
+    
+    func hasTask(name: String) -> Bool {
+        return tasks.contains({ $0.name == name })
     }
     
     /// 是否在下载中
@@ -202,7 +235,7 @@ extension Network {
                 request.allHTTPHeaderFields!["Range"] = "bytes=\(data!.length)-"
             }
         }
-        
+        //print("===================\n\(name): \n\(request)\n\(request.allHTTPHeaderFields)\n\(request.URL)\n===================")
         task.receive  = receive
         task.complete = complete
         add(task, request: request)
