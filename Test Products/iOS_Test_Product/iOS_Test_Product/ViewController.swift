@@ -11,34 +11,50 @@ import UIKit
 
 class ViewController: UIViewController {
     
-    var move: UIView = UIView(frame: CGRect(x: 50, y: 50, width: 60, height: 60))
+    let v1 = UIView()
+    
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        self.navigationController?.delegate = ControllerTransition.transition
-        move.backgroundColor = UIColor.redColor()
-        view.addSubview(move)
+        v1.backgroundColor = UIColor.blueColor()
     }
     
-    @IBOutlet weak var wating: Wating!
-
+    override func viewDidAppear(animated: Bool) {
+        super.viewDidAppear(animated)
+        view.addSubview(v1)
+        AutoLayout.view(view)
+        v1.top      == view.top + 100
+        v1.bottom   == view.bottom - 100
+        v1.leading  == view.leading + 100
+        v1.trailing == view.trailing - 100
+        AutoLayout.end()
+        
+//        AutoLayout[view].layouts {
+//            self.v1.top == self.view.top + 100
+//        }
+//        AutoLayout(view: view, first: v1).layout { (first, second) in
+//            second <| first.top == second.top + 100
+//            second <| first.bottom == second.bottom - 100
+//            second <| first.leading == second.leading + 100
+//            second <| first.trailing == second.trailing - 100
+//        }
+    }
+    
     @IBAction func lefitAction(sender: UIBarButtonItem) {
-        //wating.start()
-        Prompt.dismiss(view)
+        
     }
 
     @IBAction func rightAction(sender: UIBarButtonItem) {
-        //wating.end()
-        Prompt.show(view, type: PromptType.Loading, text: "Sueeeesdfsafdasfasdfasdfasdfas", time: 0)
+        
     }
     
     
     @IBAction func action(sender: UIButton) {
-        //wating.label.text = "OK"
+        
     }
     
     @IBAction func slider(sender: UISlider) {
-        //wating.frame = CGRect(x: 0, y: 100, width: view.bounds.width * CGFloat(sender.value), height: view.bounds.width * CGFloat(sender.value))
+        
     }
 }
 
